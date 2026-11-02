@@ -106,25 +106,97 @@ html body {
 }
 
 /*
- * Theme cursor (features/site/theme-cursor.tsx): a big dot that follows the pointer. It uses the
- * same trick as the header/title — painted in --page-blend with mix-blend-mode: difference — so it
- * reads as the theme's ink over the background and inverts to a photo-negative over imagery, and it
- * re-themes for free when the background cycles. Clicking empty space cycles the background theme.
+ * Theme cursor (features/site/theme-cursor.tsx): a camera focus reticle — four corner brackets —
+ * that follows the pointer. It uses the same trick as the header/title — painted in --page-blend
+ * with mix-blend-mode: difference — so it reads as the theme's ink over the background and inverts
+ * to a photo-negative over imagery, and it re-themes for free when the background cycles. Over a
+ * clickable control it "locks focus" (.is-focus): the brackets pull inward and the centre dot lights
+ * up. Clicking empty space cycles the background theme.
  */
 .theme-cursor {
   position: fixed;
   top: 0;
   left: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--page-blend);
+  width: 30px;
+  height: 30px;
   mix-blend-mode: difference;
   pointer-events: none;
   z-index: 10000;
   opacity: 0;
   transition: opacity 0.25s ease;
   will-change: transform;
+}
+
+/* Four L-shaped corner brackets drawn from two borders each, in the theme's blend ink. */
+.theme-cursor_corner {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 0 solid var(--page-blend);
+  transition: transform 0.18s ease;
+  /* Slightly thicker arms so the brackets hold up over busy imagery (per-side widths set below). */
+}
+
+.theme-cursor_corner--tl {
+  top: 0;
+  left: 0;
+  border-top-width: 3px;
+  border-left-width: 3px;
+}
+
+.theme-cursor_corner--tr {
+  top: 0;
+  right: 0;
+  border-top-width: 3px;
+  border-right-width: 3px;
+}
+
+.theme-cursor_corner--bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+}
+
+.theme-cursor_corner--br {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+}
+
+/* Centre focus point — hidden until the reticle locks onto a clickable control. */
+.theme-cursor_dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  margin: -1px 0 0 -1px;
+  border-radius: 50%;
+  background: var(--page-blend);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.theme-cursor.is-focus .theme-cursor_corner--tl {
+  transform: translate(3px, 3px);
+}
+
+.theme-cursor.is-focus .theme-cursor_corner--tr {
+  transform: translate(-3px, 3px);
+}
+
+.theme-cursor.is-focus .theme-cursor_corner--bl {
+  transform: translate(3px, -3px);
+}
+
+.theme-cursor.is-focus .theme-cursor_corner--br {
+  transform: translate(-3px, -3px);
+}
+
+.theme-cursor.is-focus .theme-cursor_dot {
+  opacity: 1;
 }
 
 /* On fine-pointer devices the dot replaces the native cursor (kept on text fields for the caret). */
@@ -146,7 +218,9 @@ html.has-theme-cursor [contenteditable="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .theme-cursor {
+  .theme-cursor,
+  .theme-cursor_corner,
+  .theme-cursor_dot {
     transition: none;
   }
 }

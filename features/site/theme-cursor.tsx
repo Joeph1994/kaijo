@@ -3,15 +3,21 @@
 import * as React from "react";
 
 /**
- * Clicking empty space toggles between the two "modes" — white (normal) and dark. The accent
- * colours (red / blue / greens) stay available from the footer background switcher. White is the
- * initial default (set by the bootstrap script in shared-web-layout).
+ * A camera-style focus reticle follows the pointer: four corner brackets that "lock focus" — pull
+ * inward with the centre dot lit — over anything clickable. Painted in --page-blend with
+ * mix-blend-mode: difference, so it reads as the theme's ink over the background and inverts to a
+ * photo-negative over imagery, re-theming for free when the background cycles. Clicking empty space
+ * toggles white (normal) and dark; the accent colours stay in the footer background switcher. White
+ * is the initial default (set by the bootstrap script in shared-web-layout).
  */
 const STORAGE_KEY = "kaijo-theme";
 
 // Elements that should NOT toggle the theme when clicked (interactive controls + media/content).
 const NON_EMPTY =
   "a, button, input, textarea, select, label, summary, img, video, [role='button'], [contenteditable='true'], [data-no-cycle]";
+
+// Clickable controls the reticle locks focus on — a subset of the above, without media/content.
+const INTERACTIVE = "a, button, input, textarea, select, summary, label, [role='button']";
 
 function applyTheme(name: string) {
   const root = document.documentElement;
@@ -28,11 +34,11 @@ function applyTheme(name: string) {
 }
 
 export function ThemeCursor() {
-  const dotRef = React.useRef<HTMLDivElement>(null);
+  const reticleRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const dot = dotRef.current;
-    if (!dot) {
+    const reticle = reticleRef.current;
+    if (!reticle) {
       return;
     }
 
@@ -46,13 +52,14 @@ export function ThemeCursor() {
     let targetY = window.innerHeight / 2;
     let x = targetX;
     let y = targetY;
+    let locked = false;
 
     const onPointerDown = (e: PointerEvent) => {
       downX = e.clientX;
       downY = e.clientY;
     };
 
-    // A genuine click on empty space (not a drag, not an interactive/content element) cycles theme.
+    // A genuine click on empty space (not a drag, not an interactive/content element) toggles theme.
     const onClick = (e: MouseEvent) => {
       if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) {
         return;
@@ -61,23 +68,30 @@ export function ThemeCursor() {
       if (target?.closest(NON_EMPTY)) {
         return;
       }
-      applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "white" : "dark");
+      applyTheme(root.getAttribute("data-theme") === "dark" ? "white" : "dark");
     };
 
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("click", onClick);
 
-    // Following dot: fine-pointer devices only (touch gets the tap-to-cycle behaviour, no follower).
+    // Following reticle: fine-pointer devices only (touch gets the tap-to-cycle behaviour, no follower).
     const onMouseMove = (e: MouseEvent) => {
       targetX = e.clientX;
       targetY = e.clientY;
-      dot.style.opacity = "1";
+      reticle.style.opacity = "1";
+
+      // Lock focus over clickable controls — flip the class only when the state actually changes.
+      const overInteractive = Boolean((e.target as Element | null)?.closest(INTERACTIVE));
+      if (overInteractive !== locked) {
+        locked = overInteractive;
+        reticle.classList.toggle("is-focus", locked);
+      }
     };
 
     const tick = () => {
-      x += (targetX - x) * 0.2;
-      y += (targetY - y) * 0.2;
-      dot.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      x += (targetX - x) * 0.25;
+      y += (targetY - y) * 0.25;
+      reticle.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
       raf = requestAnimationFrame(tick);
     };
 
@@ -96,5 +110,13 @@ export function ThemeCursor() {
     };
   }, []);
 
-  return <div ref={dotRef} className="theme-cursor" aria-hidden="true" />;
+  return (
+    <div ref={reticleRef} className="theme-cursor" aria-hidden="true">
+      <span className="theme-cursor_corner theme-cursor_corner--tl" />
+      <span className="theme-cursor_corner theme-cursor_corner--tr" />
+      <span className="theme-cursor_corner theme-cursor_corner--bl" />
+      <span className="theme-cursor_corner theme-cursor_corner--br" />
+      <span className="theme-cursor_dot" />
+    </div>
+  );
 }
