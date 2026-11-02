@@ -3,12 +3,13 @@
 import * as React from "react";
 
 /**
- * A camera-style focus reticle follows the pointer: four corner brackets that "lock focus" — pull
- * inward with the centre dot lit — over anything clickable. Painted in --page-blend with
- * mix-blend-mode: difference, so it reads as the theme's ink over the background and inverts to a
- * photo-negative over imagery, re-theming for free when the background cycles. Clicking empty space
- * toggles white (normal) and dark; the accent colours stay in the footer background switcher. White
- * is the initial default (set by the bootstrap script in shared-web-layout).
+ * A camera-style focus reticle follows the pointer: four corner brackets around a soft viewfinder
+ * box, drawn as one inline SVG. Painted in --page-blend with mix-blend-mode: difference, so it reads
+ * as the theme's ink over the background and inverts to a photo-negative over imagery, re-theming for
+ * free when the background cycles. Over a clickable control the centre dot lights up (.is-focus); the
+ * brackets never move. Clicking empty space toggles white (normal) and dark; the accent colours stay
+ * in the footer background switcher. White is the initial default (set by the bootstrap script in
+ * shared-web-layout).
  */
 const STORAGE_KEY = "kaijo-theme";
 
@@ -112,12 +113,17 @@ export function ThemeCursor() {
 
   return (
     <div ref={reticleRef} className="theme-cursor" aria-hidden="true">
-      <span className="theme-cursor_fill" />
-      <span className="theme-cursor_corner theme-cursor_corner--tl" />
-      <span className="theme-cursor_corner theme-cursor_corner--tr" />
-      <span className="theme-cursor_corner theme-cursor_corner--bl" />
-      <span className="theme-cursor_corner theme-cursor_corner--br" />
-      <span className="theme-cursor_dot" />
+      {/* viewBox 36×28 maps 1:1 to CSS px; brackets sit at the corners, the fill washes the inside. */}
+      <svg className="theme-cursor_svg" width="36" height="28" viewBox="0 0 36 28" fill="none">
+        <rect className="theme-cursor_fill" x="3" y="3" width="30" height="22" rx="5" />
+        <g className="theme-cursor_brackets">
+          <path d="M2 11 L2 2 L11 2" />
+          <path d="M25 2 L34 2 L34 11" />
+          <path d="M2 17 L2 26 L11 26" />
+          <path d="M34 17 L34 26 L25 26" />
+        </g>
+        <circle className="theme-cursor_dot" cx="18" cy="14" r="1.3" />
+      </svg>
     </div>
   );
 }
