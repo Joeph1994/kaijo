@@ -112,6 +112,7 @@ export function ThemeCursor() {
 
   return (
     <div ref={reticleRef} className="theme-cursor" aria-hidden="true">
+      <span className="theme-cursor_fill" />
       <span className="theme-cursor_corner theme-cursor_corner--tl" />
       <span className="theme-cursor_corner theme-cursor_corner--tr" />
       <span className="theme-cursor_corner theme-cursor_corner--bl" />

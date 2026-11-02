@@ -117,8 +117,8 @@ html body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 28px;
   mix-blend-mode: difference;
   pointer-events: none;
   z-index: 10000;
@@ -127,42 +127,53 @@ html body {
   will-change: transform;
 }
 
-/* Four L-shaped corner brackets drawn from two borders each, in the theme's blend ink. */
+/* A soft wash across the whole viewfinder so the negative reads even when the brackets fall over
+   flat areas — kept well below the brackets' opacity so the edges stay the strongest invert. */
+.theme-cursor_fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: var(--page-blend);
+  opacity: 0.2;
+}
+
+/* Four rounded L-shaped corner brackets drawn from two borders each, in the theme's blend ink. */
 .theme-cursor_corner {
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border: 0 solid var(--page-blend);
+  border-radius: 4px;
   transition: transform 0.18s ease;
-  /* Slightly thicker arms so the brackets hold up over busy imagery (per-side widths set below). */
+  /* Thicker, rounded arms (per-side widths set below) so the brackets hold up over busy imagery. */
 }
 
 .theme-cursor_corner--tl {
   top: 0;
   left: 0;
-  border-top-width: 3px;
-  border-left-width: 3px;
+  border-top-width: 4px;
+  border-left-width: 4px;
 }
 
 .theme-cursor_corner--tr {
   top: 0;
   right: 0;
-  border-top-width: 3px;
-  border-right-width: 3px;
+  border-top-width: 4px;
+  border-right-width: 4px;
 }
 
 .theme-cursor_corner--bl {
   bottom: 0;
   left: 0;
-  border-bottom-width: 3px;
-  border-left-width: 3px;
+  border-bottom-width: 4px;
+  border-left-width: 4px;
 }
 
 .theme-cursor_corner--br {
   bottom: 0;
   right: 0;
-  border-bottom-width: 3px;
-  border-right-width: 3px;
+  border-bottom-width: 4px;
+  border-right-width: 4px;
 }
 
 /* Centre focus point — hidden until the reticle locks onto a clickable control. */
