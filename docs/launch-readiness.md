@@ -84,6 +84,21 @@ tested. Nothing blocking except the store-checkout decision. The domain move is 
 - [x] Remove the dead `/articles` route + schema.
 - [ ] Optional: add a "scroll →" hint on the locked home/work; keep a contact path visible there.
 
+### Exhibition: "Wonders of Reflection" (On Now) — Nov 2026
+- [x] Page is **public** now: `noindex`/`nofollow` dropped, real meta description added, added to
+      `sitemap.xml` (it's a hard-coded route, so it's listed manually in `app/sitemap.ts`).
+- [x] **"On Now" nav flag** (brand red `#b23a30`) in the primary header, desktop + mobile; on hover it
+      expands to reveal "Wonders of Reflection" and links to `/wonders-of-reflection`. Because the header
+      paints through `mix-blend-mode: difference`, a per-theme `--on-now` token is pre-inverted so it
+      renders as true red on every solid theme.
+- [x] **`/wor` short link** added to the CMS redirects → `/wonders-of-reflection?utm_source=qr&utm_medium=print&utm_campaign=luminair`
+      (302, so it can be repointed later). This is the **QR code target**.
+- [ ] **QR code** encodes `https://joephijwegen.com/wor`. Save the print file (links in the step-by-step
+      guide). Only works once (a) the domain is live on Vercel and (b) a Redeploy has baked in the `/wor`
+      redirect. Umami attributes scans via the `utm_*` tags.
+- [ ] Confirm the exhibition **date** copy ("From 3 November 2026" on the page) matches the real opening
+      (press release says the cocktail menu is live Wed 4 Nov — pick one).
+
 ### Config & environment (Vercel)
 - [ ] `NEXT_PUBLIC_URL=https://joephijwegen.com` in the **Production** env.
 - [ ] `RESEND_API_KEY` set in prod — contact / print / workshop enquiry emails depend on it.
