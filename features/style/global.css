@@ -106,60 +106,25 @@ html body {
 }
 
 /*
- * Theme cursor (features/site/theme-cursor.tsx): a camera focus reticle — four corner brackets round
- * a soft viewfinder box — drawn as one inline SVG so the geometry is identical in dev and prod (the
- * earlier div-based version resolved differently in the production build). Painted in --page-blend
- * with mix-blend-mode: difference, so it reads as the theme's ink over the background and inverts to
- * a photo-negative over imagery, re-theming for free when the background cycles. Over a clickable
- * control the centre dot lights up (.is-focus) — the brackets never move. Clicking empty space cycles
- * the background theme.
+ * Theme cursor (features/site/theme-cursor.tsx): a big dot that follows the pointer. It uses the
+ * same trick as the header/title — painted in --page-blend with mix-blend-mode: difference — so it
+ * reads as the theme's ink over the background and inverts to a photo-negative over imagery, and it
+ * re-themes for free when the background cycles. Clicking empty space cycles the background theme.
  */
 .theme-cursor {
   position: fixed;
   top: 0;
   left: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--page-blend);
   mix-blend-mode: difference;
   pointer-events: none;
   z-index: 10000;
   opacity: 0;
   transition: opacity 0.25s ease;
   will-change: transform;
-}
-
-.theme-cursor_svg {
-  display: block;
-  overflow: visible;
-}
-
-/* Wash across the inside of the viewfinder so it reads as a true negative. A semi-transparent
-   inversion averages toward grey, so this stays near-opaque to keep showing the inverted image
-   detail; it's inset from the brackets so they keep a clear margin (and stay crisp over light
-   backgrounds, where a strong invert of white goes near-black). The opaque brackets are the
-   strongest invert. */
-.theme-cursor_fill {
-  fill: var(--page-blend);
-  opacity: 0.85;
-}
-
-/* Four corner brackets framing the box: rounded at the inner elbow (linejoin), straight-cut at the
-   outer tips (linecap: butt). */
-.theme-cursor_brackets {
-  fill: none;
-  stroke: var(--page-blend);
-  stroke-width: 3;
-  stroke-linecap: butt;
-  stroke-linejoin: round;
-}
-
-/* Centre focus point — hidden until the reticle is over a clickable control. */
-.theme-cursor_dot {
-  fill: var(--page-blend);
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.theme-cursor.is-focus .theme-cursor_dot {
-  opacity: 1;
 }
 
 /* On fine-pointer devices the dot replaces the native cursor (kept on text fields for the caret). */
@@ -181,8 +146,7 @@ html.has-theme-cursor [contenteditable="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .theme-cursor,
-  .theme-cursor_dot {
+  .theme-cursor {
     transition: none;
   }
 }
