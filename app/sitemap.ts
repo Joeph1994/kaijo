@@ -55,5 +55,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...pageEntries, ...projectEntries];
+  // Hard-coded routes that aren't Sanity page docs (so they don't come through the query above).
+  const staticEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${env.NEXT_PUBLIC_URL}/wonders-of-reflection`,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+  ];
+
+  return [...pageEntries, ...projectEntries, ...staticEntries];
 }

@@ -10,6 +10,26 @@ import type { SiteHeaderQResult } from "~/sanity/types";
 type HeaderLinks = NonNullable<NonNullable<NonNullable<SiteHeaderQResult>["header"]>["links"]>;
 type HeaderItem = HeaderLinks[number];
 
+// Current exhibition, flagged in the nav. Kept here (not CMS) because it carries bespoke styling.
+const EXHIBITION_HREF = "/wonders-of-reflection";
+
+/**
+ * "On Now" flag in the primary nav, in the brand red. At rest it reads just "On Now"; on hover/focus
+ * it reveals the exhibition name (the reveal grid animates from 0fr to its content width).
+ */
+function OnNowLink() {
+  return (
+    <KaijoNavLink href={EXHIBITION_HREF} className="nav_link nav_on-now w-inline-block">
+      <span className="nav_link-text nav_on-now_text">
+        On&nbsp;Now
+        <span className="nav_on-now_reveal">
+          <span className="nav_on-now_reveal-inner">: Wonders of Reflection</span>
+        </span>
+      </span>
+    </KaijoNavLink>
+  );
+}
+
 /**
  * Primary navigation. On desktop it's an inline row (flat links + hover/focus dropdowns). Below the
  * mobile breakpoint the row is hidden and a burger button opens a full-screen menu (all links, with
@@ -53,6 +73,7 @@ export function HeaderNav({ links }: { links: HeaderLinks }) {
   return (
     <>
       <nav className="nav_link-row" aria-label="Primary">
+        <OnNowLink />
         {/* Home is dropped on desktop — the wordmark already links home. The mobile menu keeps it. */}
         {links
           .filter((item) => item.link?.href !== "/")
@@ -88,6 +109,9 @@ export function HeaderNav({ links }: { links: HeaderLinks }) {
               <span className="nav_burger-line" />
             </button>
             <nav className="nav_mobile-list" aria-label="Primary">
+              <KaijoNavLink href={EXHIBITION_HREF} className="nav_mobile-link nav_on-now-mobile" onClick={mobileMenu.close}>
+                On Now: Wonders of Reflection
+              </KaijoNavLink>
               {links.map((item) =>
                 item.children && item.children.length > 0 ? (
                   <MobileNavGroup key={item.key} item={item} onNavigate={mobileMenu.close} />

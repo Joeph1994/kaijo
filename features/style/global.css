@@ -14,40 +14,53 @@ img {
  * Deep green and blue are sampled from the about photo (woman by the shop); the deep blue and green
  * flip the ink to white for legibility.
  */
+/*
+ * --on-now: the "On Now" nav flag is painted inside the header's mix-blend-mode: difference, which
+ * shows as |page-bg - colour|. So this token is the pre-image of the brand red #b23a30 on each
+ * theme's solid background (|page-bg - --on-now| == #b23a30), i.e. it renders as true brand red over
+ * the page. Over images it inverts like the rest of the header text, by design. (The mobile menu is
+ * portaled outside the header blend, so there the flag uses the real #b23a30 directly.)
+ */
 :root {
   --page-bg: limegreen;
   --page-ink: #222;
   --page-blend: limegreen;
+  --on-now: #e49362;
 }
 
 :root[data-theme="white"] {
   --page-bg: #ffffff;
   --page-ink: #222;
   --page-blend: #ffffff;
+  --on-now: #4dc5cf;
 }
 
 :root[data-theme="green-dark"] {
   --page-bg: #35664a;
   --page-ink: #ffffff;
   --page-blend: #ffffff;
+  --on-now: #e7a07a;
 }
 
 :root[data-theme="red"] {
   --page-bg: #b23a30;
   --page-ink: #222;
   --page-blend: #b23a30;
+  --on-now: #000000;
 }
 
 :root[data-theme="blue"] {
   --page-bg: #173a5a;
   --page-ink: #ffffff;
   --page-blend: #ffffff;
+  --on-now: #c97488;
 }
 
 :root[data-theme="dark"] {
   --page-bg: #17181a;
   --page-ink: #f4f4f4;
   --page-blend: #ffffff;
+  --on-now: #c9524a;
 }
 
 html {
@@ -251,6 +264,50 @@ html.has-theme-cursor [contenteditable="true"] {
 
 .nav_mobile {
   display: none;
+}
+
+/*
+ * "On Now" exhibition flag in the primary nav (features/site/site-header/header-nav.tsx). Brand red,
+ * reads just "On Now" at rest; on hover/focus it reveals the exhibition name — the reveal grid
+ * animates grid-template-columns from 0fr to its content width (no fixed max-width guesswork).
+ */
+.nav_on-now_text {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  /* Pre-inverted so the header's difference blend renders it as true brand red — see --on-now above. */
+  color: var(--on-now);
+}
+
+.nav_on-now_reveal {
+  display: inline-grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-columns 0.45s ease,
+    opacity 0.3s ease;
+}
+
+.nav_on-now_reveal-inner {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nav_on-now:hover .nav_on-now_reveal,
+.nav_on-now:focus-visible .nav_on-now_reveal,
+.nav_on-now:focus-within .nav_on-now_reveal {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+
+.nav_on-now-mobile {
+  color: #b23a30;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav_on-now_reveal {
+    transition: none;
+  }
 }
 
 @media screen and (max-width: 767px) {

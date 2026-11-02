@@ -4,9 +4,12 @@ import { SiteShell } from "~/features/site/site-shell";
 import { ExhibitionWorks } from "./exhibition-works";
 import { EDITION } from "./works";
 
-// Unlisted launch page — never indexed.
 export async function generateMetadata(): Promise<Metadata> {
-  return await seo({ title: "Wonders of Reflection", robots: "noindex, nofollow" });
+  return await seo({
+    title: "Wonders of Reflection",
+    description:
+      "Wonders of Reflection — eight of Joep Hijwegen's reflection photographs around a central mirror at LuminAir, Amsterdam, each paired with a cocktail. Prints available.",
+  });
 }
 
 export default function WondersOfReflectionPage() {
