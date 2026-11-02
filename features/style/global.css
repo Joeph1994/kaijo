@@ -131,11 +131,14 @@ html body {
   overflow: visible;
 }
 
-/* Soft wash across the whole viewfinder so the inside also reads as a negative, strongest at the
-   edges (the opaque brackets) and softer across the fill. */
+/* Wash across the inside of the viewfinder so it reads as a true negative. A semi-transparent
+   inversion averages toward grey, so this stays near-opaque to keep showing the inverted image
+   detail; it's inset from the brackets so they keep a clear margin (and stay crisp over light
+   backgrounds, where a strong invert of white goes near-black). The opaque brackets are the
+   strongest invert. */
 .theme-cursor_fill {
   fill: var(--page-blend);
-  opacity: 0.4;
+  opacity: 0.85;
 }
 
 /* Four corner brackets framing the box: rounded at the inner elbow (linejoin), straight-cut at the

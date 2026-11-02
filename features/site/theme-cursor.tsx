@@ -116,7 +116,7 @@ export function ThemeCursor() {
       {/* viewBox 36×28 maps 1:1 to CSS px; brackets sit at the corners, the fill washes the inside. */}
       <svg className="theme-cursor_svg" width="36" height="28" viewBox="0 0 36 28" fill="none" aria-hidden="true">
         <title>Focus reticle cursor</title>
-        <rect className="theme-cursor_fill" x="3" y="3" width="30" height="22" rx="5" />
+        <rect className="theme-cursor_fill" x="5" y="5" width="26" height="18" rx="4" />
         <g className="theme-cursor_brackets">
           <path d="M2 11 L2 2 L11 2" />
           <path d="M25 2 L34 2 L34 11" />
