@@ -69,9 +69,9 @@ export default async function WondersOfReflectionPage() {
         <section className="wor-section" id="prints">
           <h2 className="wor-h2">Buy a print</h2>
           <p className="wor-prose wor-prose--narrow">
-            The eight works are also available as smaller, unframed editions, offering a more accessible way to own a work from
-            the exhibition. Each print features a 16.7 × 25 cm image on 20 × 30 cm archival rag baryta paper with white borders,
-            in an edition of {EDITION}, and includes a copy of my photobook{" "}
+            The eight works are available as smaller, unframed editions, offering an accessible way to own a work from the
+            exhibition. Each print features a 16.7 × 25 cm image on 20 × 30 cm archival rag baryta paper with white borders, in an
+            edition of {EDITION}, and includes a copy of my photobook{" "}
             <a href="/books/controlled-coincidence">Controlled Coincidence</a>.
           </p>
           <ExhibitionWorks soldOut={soldOut} />
