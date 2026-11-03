@@ -4830,6 +4830,85 @@ html.home-route .section_feature-links {
   letter-spacing: 0.02em;
 }
 
+.cart-panel_discount {
+  font-size: 0.9em;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.cart-panel_total {
+  font-size: 1.15em;
+}
+
+/* Voucher code box in the cart foot. */
+.cart-voucher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.cart-voucher_row {
+  display: flex;
+  gap: 0.5em;
+}
+
+.cart-voucher_input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6em 0.8em;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  color: inherit;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cart-voucher_input::placeholder {
+  color: rgb(255 255 255 / 0.4);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cart-voucher_apply {
+  padding: 0.6em 1em;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  color: inherit;
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cart-voucher_apply:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.cart-voucher_applied {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.85em;
+}
+
+.cart-voucher_applied button {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 0.95em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cart-voucher_error {
+  margin: 0;
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
 .cart-panel_checkout {
   padding: 0.9em 1.5em;
   border: 1px solid #fff;

@@ -3,13 +3,34 @@
 import { useHotkeys } from "@mantine/hooks";
 import * as React from "react";
 import { useCart } from "./cart-context";
+import { isDiscountablePrint, voucherFor } from "./voucher";
 
 export function Cart() {
   const { items, count, subtotal, open, setOpen, remove, setQty } = useCart();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [voucherInput, setVoucherInput] = React.useState("");
+  const [appliedCode, setAppliedCode] = React.useState<string | null>(null);
+  const [voucherError, setVoucherError] = React.useState<string | null>(null);
 
   useHotkeys([["Escape", () => setOpen(false)]]);
+
+  // Preview only — the server re-validates and applies the real discount at checkout.
+  const voucher = voucherFor(appliedCode);
+  const printUnits = items.reduce((n, i) => (isDiscountablePrint(i.id) ? n + i.qty : n), 0);
+  const discount = voucher ? voucher.singlePrintDiscount * printUnits : 0;
+  const total = Math.max(0, subtotal - discount);
+
+  function applyVoucher() {
+    const v = voucherFor(voucherInput);
+    if (v) {
+      setAppliedCode(v.code);
+      setVoucherError(null);
+    } else {
+      setAppliedCode(null);
+      setVoucherError("That code isn't valid.");
+    }
+  }
 
   async function checkout() {
     setLoading(true);
@@ -19,7 +40,10 @@ export function Cart() {
         method: "POST",
         headers: { "content-type": "application/json" },
         // Only id + qty + (for services) price are sent; the server re-prices books and prints.
-        body: JSON.stringify({ items: items.map((i) => ({ id: i.id, qty: i.qty, price: i.price, title: i.title })) }),
+        body: JSON.stringify({
+          items: items.map((i) => ({ id: i.id, qty: i.qty, price: i.price, title: i.title })),
+          promoCode: appliedCode ?? undefined,
+        }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok || !data.url) {
@@ -95,10 +119,62 @@ export function Cart() {
                 </ul>
 
                 <div className="cart-panel_foot">
+                  <div className="cart-voucher">
+                    {voucher ? (
+                      <div className="cart-voucher_applied">
+                        <span>
+                          Voucher <strong>{voucher.code}</strong> applied
+                          {printUnits === 0 ? " — add a print to use it" : ""}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAppliedCode(null);
+                            setVoucherInput("");
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="cart-voucher_row">
+                        <input
+                          className="cart-voucher_input"
+                          type="text"
+                          placeholder="Voucher code"
+                          value={voucherInput}
+                          onChange={(event) => setVoucherInput(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              applyVoucher();
+                            }
+                          }}
+                          aria-label="Voucher code"
+                        />
+                        <button type="button" className="cart-voucher_apply" onClick={applyVoucher}>
+                          Apply
+                        </button>
+                      </div>
+                    )}
+                    {voucherError && <p className="cart-voucher_error">{voucherError}</p>}
+                  </div>
+
                   <div className="cart-panel_subtotal">
                     <span>Subtotal</span>
                     <span>€{subtotal}</span>
                   </div>
+                  {discount > 0 && (
+                    <>
+                      <div className="cart-panel_subtotal cart-panel_discount">
+                        <span>Voucher {voucher?.code}</span>
+                        <span>−€{discount}</span>
+                      </div>
+                      <div className="cart-panel_subtotal cart-panel_total">
+                        <span>Total</span>
+                        <span>€{total}</span>
+                      </div>
+                    </>
+                  )}
                   <button type="button" className="cart-panel_checkout" onClick={checkout} disabled={loading}>
                     {loading ? "Redirecting…" : "Checkout →"}
                   </button>

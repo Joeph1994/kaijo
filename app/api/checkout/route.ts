@@ -5,6 +5,7 @@ import { PRICE_SET, PRICE_SINGLE, WORKS } from "~/app/(web)/wonders-of-reflectio
 import { env } from "~/env";
 import { sanityFetch } from "~/features/sanity/client";
 import { printSkusConsumedBy } from "~/features/store/stock";
+import { isDiscountablePrint, voucherFor } from "~/features/store/voucher";
 
 export const runtime = "nodejs";
 
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Checkout isn't set up yet. Please email me@joephijwegen.com to order." }, { status: 503 });
   }
 
-  let body: { items?: IncomingItem[] };
+  let body: { items?: IncomingItem[]; promoCode?: string };
   try {
     body = await req.json();
   } catch {
@@ -97,6 +98,9 @@ export async function POST(req: Request) {
   if (items.length === 0) {
     return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
   }
+
+  // Validated here (never trusted from the client); applies to single prints only.
+  const voucher = voucherFor(body.promoCode);
 
   const [books, stockDoc] = await Promise.all([
     sanityFetch<BookRows>({ query: BookRowsQ, options: { next: { revalidate: 30 } } }),
@@ -158,6 +162,10 @@ export async function POST(req: Request) {
       }
     }
 
+    if (voucher && unitEur != null && isDiscountablePrint(it.id)) {
+      unitEur = Math.max(1, unitEur - voucher.singlePrintDiscount);
+    }
+
     if (unitEur == null || unitEur <= 0) {
       return NextResponse.json({ error: "One of the items couldn't be priced. Please refresh and try again." }, { status: 400 });
     }
@@ -198,7 +206,7 @@ export async function POST(req: Request) {
     billing_address_collection: "auto",
     allow_promotion_codes: false,
     // The webhook reads this to record the order and decrement stock (Stripe caps a value at 500 chars).
-    metadata: { cart: cartMeta.join(";").slice(0, 500) },
+    metadata: { cart: cartMeta.join(";").slice(0, 500), ...(voucher ? { voucher: voucher.code } : {}) },
   };
 
   if (hasPhysical) {
