@@ -77,6 +77,13 @@ export const book = defineType({
               initialValue: "available",
             }),
             defineField({ name: "sku", type: "string", title: "SKU" }),
+            defineField({
+              name: "stock",
+              type: "number",
+              title: "Stock",
+              description: "Copies remaining. Checkout blocks this edition at 0; the webhook decrements it per paid order.",
+              validation: (R) => R.min(0),
+            }),
           ],
           preview: {
             select: { title: "name", price: "price", media: "image" },

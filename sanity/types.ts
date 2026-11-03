@@ -1265,6 +1265,57 @@ export type MediaSection = {
   caption?: string;
 };
 
+export type StoreStock = {
+  _id: string;
+  _type: "storeStock";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  items?: Array<{
+    sku?: string;
+    label?: string;
+    stock?: number;
+    _type: "stockItem";
+    _key: string;
+  }>;
+};
+
+export type Order = {
+  _id: string;
+  _type: "order";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  orderNo?: string;
+  placedAt?: string;
+  status?: "paid" | "shipped" | "refunded" | "cancelled";
+  trackingNumber?: string;
+  customerName?: string;
+  customerEmail?: string;
+  shippingAddress?: {
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  items?: Array<{
+    label?: string;
+    sku?: string;
+    qty?: number;
+    unitPrice?: number;
+    _type: "orderItem";
+    _key: string;
+  }>;
+  subtotal?: number;
+  shippingCost?: number;
+  total?: number;
+  currency?: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
+};
+
 export type Portfolio = {
   _id: string;
   _type: "portfolio";
@@ -1305,6 +1356,7 @@ export type Book = {
     };
     availability?: "available" | "limited" | "soldOut";
     sku?: string;
+    stock?: number;
     _type: "bookVariant";
     _key: string;
   }>;
@@ -2248,6 +2300,8 @@ export type AllSanitySchemaTypes =
   | TextSection
   | CtaSection
   | MediaSection
+  | StoreStock
+  | Order
   | Portfolio
   | Slug
   | Book
@@ -2527,6 +2581,19 @@ export type ProjectQResult = {
 // Query: *[_type == "project" && defined(slug.current)]{"slug": slug.current}
 export type ProjectSlugsQResult = Array<{
   slug: string | undefined;
+}>;
+
+// Source: app/api/checkout/route.ts
+// Variable: BookPricesQ
+// Query: *[_type == "book"]{ "bookId": _id, title, variants[]{ "key": _key, name, price } }
+export type BookPricesQResult = Array<{
+  bookId: string;
+  title: string | undefined;
+  variants: Array<{
+    key: string;
+    name: string | undefined;
+    price: number | undefined;
+  }> | undefined;
 }>;
 
 // Source: app/sitemap.ts

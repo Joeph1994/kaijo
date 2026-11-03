@@ -9,6 +9,7 @@ export const TEMPLATE_IDS = {
 /** Singleton IDs as string literals (typegen resolves only literals, not member access); derive `SINGLETON_IDS` from these. */
 export const SANITY_SINGLETON_SITE_ID = "site";
 export const SANITY_SINGLETON_HOMEPAGE_ID = "homepage";
+export const SANITY_SINGLETON_STORE_STOCK_ID = "storeStock";
 
 /** The unified Prints & Books page. The books section renders the store sub-nav when it lives here. */
 export const SANITY_STORE_PAGE_ID = "page-store";
@@ -16,6 +17,7 @@ export const SANITY_STORE_PAGE_ID = "page-store";
 export const SINGLETON_IDS = {
   site: SANITY_SINGLETON_SITE_ID,
   homepage: SANITY_SINGLETON_HOMEPAGE_ID,
+  storeStock: SANITY_SINGLETON_STORE_STOCK_ID,
   // PLOP: Add Singleton ID
 } as const;
 
@@ -35,6 +37,8 @@ export const SANITY_PAGE_DOCUMENT_TYPE = "page" as const;
 export const SANITY_PROJECT_DOCUMENT_TYPE = "project" as const;
 /** Password-gated client lookbooks at /portfolio/<slug>. Never indexed, never in nav; images are opted in per-photo. */
 export const SANITY_PORTFOLIO_DOCUMENT_TYPE = "portfolio" as const;
+/** Paid orders, created by the Stripe webhook; editable in Studio for fulfilment (status, tracking). */
+export const SANITY_ORDER_DOCUMENT_TYPE = "order" as const;
 
 /**
  * The fixed Work sub-categories. The value is also the label shown under a project title, and is

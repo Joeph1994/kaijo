@@ -69,6 +69,22 @@ export function buildStructure(S: StructureBuilder) {
         .icon(() => <>📄</>)
         .child(S.documentTypeList("book").title("Books")),
 
+      S.listItem()
+        .title("Orders")
+        .icon(() => <>🧾</>)
+        .child(
+          S.documentTypeList("order")
+            .title("Orders")
+            .defaultOrdering([{ field: "placedAt", direction: "desc" }])
+        ),
+
+      singleton(S, {
+        title: "Print stock",
+        schemaType: "storeStock",
+        documentId: SINGLETON_IDS.storeStock,
+        icon: () => <>📦</>,
+      }),
+
       // PLOP: Add Structure
 
       S.divider(),
