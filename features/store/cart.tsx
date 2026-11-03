@@ -6,9 +6,33 @@ import { useCart } from "./cart-context";
 
 export function Cart() {
   const { items, count, subtotal, open, setOpen, remove, setQty } = useCart();
-  const [checkoutNotice, setCheckoutNotice] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   useHotkeys([["Escape", () => setOpen(false)]]);
+
+  async function checkout() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        // Only id + qty + (for services) price are sent; the server re-prices books and prints.
+        body: JSON.stringify({ items: items.map((i) => ({ id: i.id, qty: i.qty, price: i.price, title: i.title })) }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "Couldn't start checkout. Please try again.");
+        setLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError("Couldn't start checkout. Please email me@joephijwegen.com to order.");
+      setLoading(false);
+    }
+  }
 
   return (
     <>
@@ -75,15 +99,10 @@ export function Cart() {
                     <span>Subtotal</span>
                     <span>€{subtotal}</span>
                   </div>
-                  <button type="button" className="cart-panel_checkout" onClick={() => setCheckoutNotice(true)}>
-                    Checkout →
+                  <button type="button" className="cart-panel_checkout" onClick={checkout} disabled={loading}>
+                    {loading ? "Redirecting…" : "Checkout →"}
                   </button>
-                  {checkoutNotice && (
-                    <p className="cart-panel_notice">
-                      Online checkout is being set up. For now, email{" "}
-                      <a href="mailto:me@joephijwegen.com?subject=Book%20order">me@joephijwegen.com</a> to order.
-                    </p>
-                  )}
+                  {error && <p className="cart-panel_notice">{error}</p>}
                 </div>
               </>
             )}

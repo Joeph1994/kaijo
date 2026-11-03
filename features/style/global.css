@@ -4854,6 +4854,43 @@ html.home-route .section_feature-links {
   text-decoration: underline;
 }
 
+.cart-panel_checkout:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Checkout thank-you page (app/(web)/checkout/success). */
+.checkout-done {
+  max-width: 34em;
+  margin: 0 auto;
+  padding: 8em var(--container-padding);
+  text-align: center;
+}
+
+.checkout-done_title {
+  margin: 0 0 0.6em;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.checkout-done_text {
+  margin: 0 0 1.5em;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--page-ink) 75%, transparent);
+}
+
+.checkout-done_text a {
+  text-decoration: underline;
+}
+
+.checkout-done_link {
+  font-family: "Basier Circle Mono", Arial, sans-serif;
+  text-transform: uppercase;
+  font-size: 0.82em;
+  letter-spacing: 0.04em;
+}
+
 /* Background theme switcher (footer) — coloured dots to try each background. */
 .theme-switcher {
   display: flex;
