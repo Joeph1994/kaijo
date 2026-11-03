@@ -70,13 +70,14 @@ export default async function WondersOfReflectionPage() {
           <h2 className="wor-h2">Buy a print</h2>
           <p className="wor-prose wor-prose--narrow">
             The eight works are available as smaller, unframed editions, offering an accessible way to own a work from the
-            exhibition. Each print features a 16.7 × 25 cm image on 20 × 30 cm archival rag baryta paper with white borders, in an
-            edition of {EDITION}, and includes a copy of my photobook{" "}
-            <a href="/books/controlled-coincidence">Controlled Coincidence</a>.
+            exhibition. Each print features a 16.7 × 25 cm image on 20 × 30 cm archival paper with white borders, in an edition of{" "}
+            {EDITION}, and includes a copy of my photobook <a href="/books/controlled-coincidence">Controlled Coincidence</a>.
           </p>
           <ExhibitionWorks soldOut={soldOut} />
           <p className="wor-aside">
-            Part of Joep Hijwegen's wider work in print. <a href="/store#prints">View the fine-art editions →</a>
+            These works are part of Joep Hijwegen's wider practice in print. For a larger, framed fine-art print of one of them,{" "}
+            <a href="mailto:me@joephijwegen.com?subject=Fine-art%20print%20enquiry">enquire for pricing</a> — or{" "}
+            <a href="/store#prints">view the fine-art editions →</a>
           </p>
         </section>
 
