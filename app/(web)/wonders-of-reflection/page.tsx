@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { defineQuery } from "next-sanity";
+import { sanityFetch } from "~/features/sanity/client";
 import { seo } from "~/features/site/seo/utils";
 import { SiteShell } from "~/features/site/site-shell";
 import { ExhibitionWorks } from "./exhibition-works";
@@ -12,7 +14,17 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function WondersOfReflectionPage() {
+const StockQ = defineQuery(`*[_id == "storeStock"][0]{ "items": items[]{ sku, stock } }`);
+
+export default async function WondersOfReflectionPage() {
+  const stock = await sanityFetch<{ items: Array<{ sku: string | null; stock: number | null }> | null } | null>({
+    query: StockQ,
+    options: { next: { revalidate: 30 } },
+  });
+  const soldOut = (stock?.items ?? [])
+    .filter((i) => i.sku && typeof i.stock === "number" && i.stock <= 0)
+    .map((i) => i.sku as string);
+
   return (
     <SiteShell>
       <div className="wor">
@@ -62,7 +74,7 @@ export default function WondersOfReflectionPage() {
             in an edition of {EDITION}, and includes a copy of my photobook{" "}
             <a href="/books/controlled-coincidence">Controlled Coincidence</a>.
           </p>
-          <ExhibitionWorks />
+          <ExhibitionWorks soldOut={soldOut} />
           <p className="wor-aside">
             Part of Joep Hijwegen's wider work in print. <a href="/store#prints">View the fine-art editions →</a>
           </p>

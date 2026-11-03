@@ -5,7 +5,7 @@ import { useCart } from "~/features/store/cart-context";
 import { cx } from "~/features/style/utils";
 import { EDITION, PRICE_SET, PRICE_SINGLE, type ReflectionWork, WORKS } from "./works";
 
-function WorkCard({ work, onAdd }: { work: ReflectionWork; onAdd: (w: ReflectionWork) => void }) {
+function WorkCard({ work, soldOut, onAdd }: { work: ReflectionWork; soldOut: boolean; onAdd: (w: ReflectionWork) => void }) {
   // Desktop reveals the print mockup on hover; touch devices toggle it on tap (no hover).
   const [active, setActive] = React.useState(false);
 
@@ -29,16 +29,19 @@ function WorkCard({ work, onAdd }: { work: ReflectionWork; onAdd: (w: Reflection
           </span>
           <span className="wor-card_title">{work.cocktail}</span>
         </span>
-        <button type="button" className="wor-buy" onClick={() => onAdd(work)}>
-          Add to cart
+        <button type="button" className="wor-buy" onClick={() => onAdd(work)} disabled={soldOut}>
+          {soldOut ? "Sold out" : "Add to cart"}
         </button>
       </figcaption>
     </figure>
   );
 }
 
-export function ExhibitionWorks() {
+export function ExhibitionWorks({ soldOut = [] }: { soldOut?: string[] }) {
   const { add } = useCart();
+  const soldOutSet = new Set(soldOut);
+  // The set can't be fulfilled if the set itself or any single is sold out.
+  const setSoldOut = soldOutSet.has("print:wor:set") || WORKS.some((w) => soldOutSet.has(`print:wor:${w.id}`));
 
   const addPrint = (work: ReflectionWork) =>
     add({
@@ -68,7 +71,7 @@ export function ExhibitionWorks() {
     <div className="wor-works">
       <div className="wor-grid">
         {WORKS.map((work) => (
-          <WorkCard key={work.id} work={work} onAdd={addPrint} />
+          <WorkCard key={work.id} work={work} soldOut={soldOutSet.has(`print:wor:${work.id}`)} onAdd={addPrint} />
         ))}
       </div>
 
@@ -81,8 +84,8 @@ export function ExhibitionWorks() {
         </div>
         <div className="wor-set_buy">
           <span className="wor-set_price">€{PRICE_SET}</span>
-          <button type="button" className="wor-buy wor-buy--solid" onClick={addSet}>
-            Add set to cart
+          <button type="button" className="wor-buy wor-buy--solid" onClick={addSet} disabled={setSoldOut}>
+            {setSoldOut ? "Sold out" : "Add set to cart"}
           </button>
         </div>
       </div>

@@ -2189,10 +2189,15 @@ html.home-route .section_feature-links {
     border-color 0.2s ease;
 }
 
-.wor-buy:hover {
+.wor-buy:hover:not(:disabled) {
   background: var(--page-ink);
   color: var(--page-bg);
   border-color: var(--page-ink);
+}
+
+.wor-buy:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 .wor-buy--solid {
