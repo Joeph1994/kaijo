@@ -1,3 +1,6 @@
+"use client";
+
+import * as React from "react";
 import { LightboxImage } from "~/components/lightbox";
 import type { ImageFragmentResult } from "~/features/sanity/media/fragment";
 
@@ -15,7 +18,34 @@ const TILE_VH = 56;
  * aspect ratio, so the `sizes` hint is height × ratio (sharp on landscape, no waste on portrait).
  */
 export function ProjectSeriesGallery({ images }: { images: SeriesImage[] }) {
+  const trackRef = React.useRef<HTMLDivElement>(null);
   const items = images.filter((i) => i.image?._id);
+
+  // Desktop: turn a vertical wheel into horizontal scroll while the strip still has room, then hand
+  // back to the page at either end so the reader keeps moving down to "More projects". Native
+  // (passive:false) listener so we can preventDefault. Mobile keeps the native touch swipe.
+  React.useEffect(() => {
+    const track = trackRef.current;
+    if (!track) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      const max = track.scrollWidth - track.clientWidth;
+      if (!delta || max <= 0) {
+        return;
+      }
+      const atStart = track.scrollLeft <= 0;
+      const atEnd = track.scrollLeft >= max - 1;
+      if ((delta > 0 && !atEnd) || (delta < 0 && !atStart)) {
+        event.preventDefault();
+        track.scrollLeft += delta;
+      }
+    };
+    track.addEventListener("wheel", onWheel, { passive: false });
+    return () => track.removeEventListener("wheel", onWheel);
+  }, []);
+
   if (items.length === 0) {
     return null;
   }
@@ -23,7 +53,7 @@ export function ProjectSeriesGallery({ images }: { images: SeriesImage[] }) {
   return (
     <section className="project-series" aria-label="Full series">
       <h2 className="section-eyebrow project-series_head">Full series</h2>
-      <div className="project-series_track">
+      <div ref={trackRef} className="project-series_track">
         {items.map((item) => {
           const ratio = item.aspectRatio ?? 1;
           return (
