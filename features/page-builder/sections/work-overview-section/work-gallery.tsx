@@ -76,6 +76,51 @@ export function WorkGallery({ items }: { items: WorkGalleryItem[] }) {
     return () => wall.removeEventListener("wheel", onWheel);
   }, []);
 
+  // Touch (no hover): sync the highlighted name to the scroll position instead of to the finger.
+  // The active project is the leftmost tile that is still at least half visible, so the highlight
+  // switches exactly as a picture passes the halfway point. Desktop keeps the hover highlight.
+  React.useEffect(() => {
+    const wall = wallRef.current;
+    if (!wall || canHover) {
+      return;
+    }
+    const sync = () => {
+      const wallRect = wall.getBoundingClientRect();
+      const tiles = Array.from(wall.children) as HTMLElement[];
+      let idx = 0;
+      for (let i = 0; i < tiles.length; i++) {
+        const tile = tiles[i];
+        if (!tile) {
+          continue;
+        }
+        const r = tile.getBoundingClientRect();
+        const left = r.left - wallRect.left;
+        const visible = Math.min(left + r.width, wallRect.width) - Math.max(left, 0);
+        if (r.width > 0 && visible / r.width >= 0.5) {
+          idx = i;
+          break;
+        }
+      }
+      setActive(items[idx]?.key ?? null);
+    };
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) {
+        return;
+      }
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        sync();
+      });
+    };
+    wall.addEventListener("scroll", onScroll, { passive: true });
+    sync();
+    return () => {
+      wall.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [canHover, items]);
+
   // Bring a tile into view within the wall (used when hovering the left-hand index) so the
   // highlighted image is always visible. Scrolls only the horizontal wall, never the page.
   const scrollToTile = (index: number) => {
@@ -153,8 +198,10 @@ export function WorkGallery({ items }: { items: WorkGalleryItem[] }) {
             className="work-gallery_name"
             data-active={active === item.key ? "true" : undefined}
             onPointerEnter={() => {
-              setActive(item.key);
-              scrollToTile(index);
+              if (canHover) {
+                setActive(item.key);
+                scrollToTile(index);
+              }
             }}
             onFocus={() => {
               setActive(item.key);
@@ -186,9 +233,17 @@ export function WorkGallery({ items }: { items: WorkGalleryItem[] }) {
             className="work-gallery_tile"
             data-active={active === item.key ? "true" : undefined}
             style={{ "--h": `${heights[index]}vh`, "--ratio": item.aspectRatio ?? 1 } as React.CSSProperties}
-            onPointerEnter={() => setActive(item.key)}
+            onPointerEnter={() => {
+              if (canHover) {
+                setActive(item.key);
+              }
+            }}
             onFocus={() => setActive(item.key)}
-            onBlur={() => setActive(null)}
+            onBlur={() => {
+              if (canHover) {
+                setActive(null);
+              }
+            }}
             onClick={onTileClick}
           >
             <div className="work-gallery_media">
