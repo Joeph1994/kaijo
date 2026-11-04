@@ -754,6 +754,16 @@ html.has-theme-cursor [contenteditable="true"] {
     width: calc(var(--h) * var(--reel-h) * var(--ratio, 1));
     aspect-ratio: auto;
   }
+
+  /*
+   * A full-height tile's bottom sits flush with the reel's bottom clip, so its label — pinned to the
+   * tile bottom — would ride the viewport edge and get half-cut as the browser chrome shows/hides.
+   * Extra bottom padding lifts the text (project name + "View project") well clear of the clip while
+   * the gradient box stays glued to the image. Shorter tiles just carry the label a touch higher.
+   */
+  .home-showcase_caption {
+    padding: 1em 0.85em 1.8em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
