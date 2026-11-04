@@ -4949,17 +4949,22 @@ html.home-route .section_feature-links {
   margin: 0 auto;
   padding: 8em var(--container-padding);
   text-align: center;
+  font-family: "Basier Circle Mono", Arial, sans-serif;
 }
 
+/* Explicit font/size so this doesn't inherit the webflow h1 display face or the compressed cascade. */
 .checkout-done_title {
   margin: 0 0 0.6em;
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-family: "Basier Circle Mono", Arial, sans-serif;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  line-height: 1.3;
 }
 
 .checkout-done_text {
   margin: 0 0 1.5em;
+  font-size: 1rem;
   line-height: 1.6;
   color: color-mix(in srgb, var(--page-ink) 75%, transparent);
 }
