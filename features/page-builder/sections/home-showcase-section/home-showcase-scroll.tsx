@@ -241,6 +241,48 @@ export function HomeShowcaseScroll({ slides }: { slides: HomeShowcaseSlide[] }) 
     }
   }, [batches]);
 
+  // Touch (no hover): the centred tile shows its label automatically. The active project is the tile
+  // whose centre is nearest the viewport centre, updated as the reel scrolls.
+  React.useEffect(() => {
+    const track = trackRef.current;
+    if (!track || canHover) {
+      return;
+    }
+    let raf = 0;
+    const sync = () => {
+      const rect = track.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      let bestKey: string | null = null;
+      let bestDist = Number.POSITIVE_INFINITY;
+      for (const el of track.querySelectorAll<HTMLElement>(".home-showcase_tile")) {
+        const r = el.getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - center);
+        if (d < bestDist) {
+          bestDist = d;
+          bestKey = el.dataset.key ?? null;
+        }
+      }
+      if (bestKey) {
+        setActiveKey(bestKey);
+      }
+    };
+    const onScrollSync = () => {
+      if (raf) {
+        return;
+      }
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        sync();
+      });
+    };
+    track.addEventListener("scroll", onScrollSync, { passive: true });
+    sync();
+    return () => {
+      track.removeEventListener("scroll", onScrollSync);
+      cancelAnimationFrame(raf);
+    };
+  }, [canHover, batches]);
+
   const onScroll = React.useCallback(() => {
     if (rafPending.current) {
       return;
@@ -284,17 +326,21 @@ export function HomeShowcaseScroll({ slides }: { slides: HomeShowcaseSlide[] }) 
     drag.current.active = false;
   };
 
-  const onTileClick = (e: React.MouseEvent, key: string) => {
-    // A drag that scrolled the track shouldn't also open a project.
+  // Touch tap vs swipe: a swipe that scrolled the reel must not navigate.
+  const touch = React.useRef({ x: 0, y: 0, moved: false });
+
+  const onTileClick = (e: React.MouseEvent) => {
+    // A mouse drag that scrolled the track shouldn't also open a project.
     if (drag.current.moved) {
       e.preventDefault();
       drag.current.moved = false;
       return;
     }
-    // Touch: first tap reveals the label + arrow, second tap navigates.
-    if (!canHover && activeKey !== key) {
+    // Touch: only a genuine tap opens a project (single tap — the centred tile already shows its
+    // label via the scroll-sync below, so there's no reveal step to consume the first tap).
+    if (touch.current.moved) {
       e.preventDefault();
-      setActiveKey(key);
+      touch.current.moved = false;
     }
   };
 
@@ -305,6 +351,16 @@ export function HomeShowcaseScroll({ slides }: { slides: HomeShowcaseSlide[] }) 
       role="list"
       className="home-showcase_track"
       onScroll={onScroll}
+      onTouchStart={(e) => {
+        const t = e.touches[0];
+        touch.current = { x: t?.clientX ?? 0, y: t?.clientY ?? 0, moved: false };
+      }}
+      onTouchMove={(e) => {
+        const t = e.touches[0];
+        if (t && (Math.abs(t.clientX - touch.current.x) > 8 || Math.abs(t.clientY - touch.current.y) > 8)) {
+          touch.current.moved = true;
+        }
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
@@ -331,6 +387,7 @@ export function HomeShowcaseScroll({ slides }: { slides: HomeShowcaseSlide[] }) 
                 role="listitem"
                 className="home-showcase_tile"
                 data-active={isActive ? "true" : undefined}
+                data-key={tile.key}
                 style={
                   {
                     "--h": `${tile.h}`,
@@ -338,7 +395,7 @@ export function HomeShowcaseScroll({ slides }: { slides: HomeShowcaseSlide[] }) 
                     "--ratio": tile.slide.aspectRatio ?? 1,
                   } as React.CSSProperties
                 }
-                onClick={(e) => onTileClick(e, tile.key)}
+                onClick={onTileClick}
               >
                 <div className="home-showcase_media">
                   {/* Tile height = `--h` (fraction) × the reel track (86vh desktop, 64dvh mobile); the
