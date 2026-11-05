@@ -1311,6 +1311,13 @@ export type Order = {
     _type: "orderItem";
     _key: string;
   }>;
+  voucherCodes?: Array<{
+    code?: string;
+    label?: string;
+    redeemed?: boolean;
+    _type: "voucherCode";
+    _key: string;
+  }>;
   subtotal?: number;
   shippingCost?: number;
   total?: number;

@@ -4,10 +4,14 @@ import Stripe from "stripe";
 import { env } from "~/env";
 import { sanityEditClient } from "~/features/sanity/client";
 import { printSkusConsumedBy } from "~/features/store/stock";
+import { generateVoucherCode, isVoucherSku, voucherSubject } from "~/features/store/voucher-code";
+import { renderVoucherPdf, voucherPdfAssets } from "~/features/store/voucher-pdf";
 
 export const runtime = "nodejs";
 
 const NOTIFY_TO = "me@joephijwegen.com";
+// Flip to true once public/voucher/signature.png (Joep's handwritten signature) is committed.
+const HAS_SIGNATURE = false;
 
 /** Parse the compact `id|qty;id|qty` cart written by /api/checkout into the session metadata. */
 function parseCart(meta: string | null | undefined): Array<{ id: string; qty: number }> {
@@ -128,12 +132,30 @@ export async function POST(req: Request) {
 
   const addr = session.collected_information?.shipping_details?.address ?? session.customer_details?.address ?? null;
   const orderNo = `ORD-${sessionId.slice(-8).toUpperCase()}`;
+  const now = new Date();
+
+  // One unique gift-voucher code per voucher unit bought (qty > 1 → one code each).
+  const voucherJobs: Array<{ code: string; subject: string; value: number | null }> = [];
+  orderItems.forEach((item, i) => {
+    if (!isVoucherSku(item.sku)) {
+      return;
+    }
+    const subject = voucherSubject(item.label);
+    for (let unit = 0; unit < (item.qty || 1); unit++) {
+      const code = generateVoucherCode({
+        voucherSku: item.sku,
+        purchasedAt: now,
+        uniqueSeed: `${sessionId}:${i}:${unit}`,
+      });
+      voucherJobs.push({ code, subject, value: item.unitPrice ?? null });
+    }
+  });
 
   try {
     await sanityEditClient.create({
       _type: "order",
       orderNo,
-      placedAt: new Date().toISOString(),
+      placedAt: now.toISOString(),
       status: "paid",
       customerName: session.customer_details?.name ?? session.collected_information?.shipping_details?.name ?? "",
       customerEmail: session.customer_details?.email ?? "",
@@ -148,6 +170,13 @@ export async function POST(req: Request) {
           }
         : undefined,
       items: orderItems,
+      voucherCodes: voucherJobs.map((job, i) => ({
+        _key: `vc${i}`,
+        _type: "voucherCode",
+        code: job.code,
+        label: job.subject,
+        redeemed: false,
+      })),
       subtotal: (session.amount_subtotal ?? 0) / 100,
       shippingCost: (session.shipping_cost?.amount_total ?? 0) / 100,
       total: (session.amount_total ?? 0) / 100,
@@ -166,6 +195,44 @@ export async function POST(req: Request) {
     // Order is already recorded; a stock-write hiccup shouldn't make Stripe retry (would double nothing
     // but is noisy). Log it so it can be corrected in Studio.
     console.error("Webhook: stock decrement failed:", error);
+  }
+
+  // Vouchers: render a signed PDF per code and email them straight to the customer (bcc Joep).
+  const customerEmail = session.customer_details?.email ?? "";
+  if (voucherJobs.length > 0 && customerEmail && env.RESEND_API_KEY) {
+    try {
+      const assets = voucherPdfAssets(env.NEXT_PUBLIC_URL, HAS_SIGNATURE);
+      const attachments: Array<{ filename: string; content: Buffer }> = [];
+      for (const job of voucherJobs) {
+        const pdf = await renderVoucherPdf({ code: job.code, subject: job.subject, value: job.value, issuedAt: now }, assets);
+        attachments.push({ filename: `voucher-${job.code}.pdf`, content: pdf });
+      }
+      const firstName = (session.customer_details?.name ?? "").split(" ")[0];
+      const many = voucherJobs.length > 1;
+      await new Resend(env.RESEND_API_KEY).emails.send({
+        from: env.RESEND_EMAIL_FROM || "Joep Hijwegen <onboarding@resend.dev>",
+        to: customerEmail,
+        bcc: NOTIFY_TO,
+        replyTo: NOTIFY_TO,
+        subject: many ? "Your vouchers — Joep Hijwegen" : "Your voucher — Joep Hijwegen",
+        text: [
+          firstName ? `Hi ${firstName},` : "Hi,",
+          "",
+          `Thank you — your ${many ? "vouchers are" : "voucher is"} attached as ${many ? "PDFs" : "a PDF"}.`,
+          "",
+          voucherJobs.map((j) => `• ${j.subject} — code ${j.code}`).join("\n"),
+          "",
+          "Each voucher has a unique code and is redeemable any time — it never expires. To book, just reply to this email with your code and I'll arrange a date and time that suits you. They also make a great gift: forward the PDF to whoever it's for.",
+          "",
+          "See you soon,",
+          "Joep Hijwegen",
+          "joephijwegen.com",
+        ].join("\n"),
+        attachments,
+      });
+    } catch (error) {
+      console.error("Webhook: voucher email failed:", error);
+    }
   }
 
   if (env.RESEND_API_KEY) {
