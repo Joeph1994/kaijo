@@ -47,17 +47,10 @@ export const workshopPricingSection = defineField({
             defineField({
               name: "sellAsVoucher",
               type: "boolean",
-              title: "Sell directly as a voucher",
+              title: "Offer as a voucher",
               description:
-                "Adds a “Buy as voucher” button to this tier, priced from the Price above — for options people can buy without enquiring first. Needs a numeric price (e.g. €250).",
+                "Adds this option to the “Buy a voucher” dropdown in this block's book-or-enquire box, priced from the Price above. For set options with a fixed time and price (needs a numeric price, e.g. €250).",
               initialValue: false,
-            }),
-            defineField({
-              name: "voucherNote",
-              type: "string",
-              title: "Voucher note",
-              description: "Small line under the Buy button, e.g. “Emailed as a gift voucher, valid 12 months.”",
-              hidden: ({ parent }) => !(parent as { sellAsVoucher?: boolean })?.sellAsVoucher,
             }),
           ],
           preview: { select: { title: "title", subtitle: "price" } },

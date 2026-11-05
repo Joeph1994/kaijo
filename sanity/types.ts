@@ -759,7 +759,6 @@ export type WorkshopPricingSection = {
     price?: string;
     description?: string;
     sellAsVoucher?: boolean;
-    voucherNote?: string;
     _type: "pricingTier";
     _key: string;
   }>;
@@ -4948,7 +4947,7 @@ export type WorkshopNotesSectionQResult = {
 
 // Source: features/page-builder/sections/workshop-pricing-section.tsx
 // Variable: WorkshopPricingSectionQ
-// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "workshopPricingSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      lead,      purchase,      tiers[]{ "key": _key, title, price, description, sellAsVoucher, voucherNote },      note,      bookingHeading,      bookingIntro,      bookingExtraOptions    }}
+// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "workshopPricingSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      lead,      purchase,      tiers[]{ "key": _key, title, price, description, sellAsVoucher },      note,      bookingHeading,      bookingIntro,      bookingExtraOptions    }}
 export type WorkshopPricingSectionQResult = {
   content: {
     heading: string | undefined;
@@ -4960,7 +4959,6 @@ export type WorkshopPricingSectionQResult = {
       price: string | undefined;
       description: string | undefined;
       sellAsVoucher: boolean | undefined;
-      voucherNote: string | undefined;
     }> | undefined;
     note: string | undefined;
     bookingHeading: string | undefined;

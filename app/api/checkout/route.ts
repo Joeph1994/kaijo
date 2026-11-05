@@ -172,10 +172,15 @@ export async function POST(req: Request) {
   const printNeed = new Map<string, number>();
   const bookNeed = new Map<string, number>();
 
+  // Shown on the Stripe line so a voucher buyer sees exactly what a voucher is before paying.
+  const VOUCHER_DESCRIPTION =
+    "Redeemable voucher — a gift or for yourself, valid any time, never expires. Dates and times are arranged with Joep by email after purchase.";
+
   for (const it of items) {
     const qty = Math.max(1, Math.min(99, Math.floor(Number(it.qty) || 1)));
     let unitEur: number | null = null;
     let label = (it.title || "Item").slice(0, 200);
+    let description: string | null = null;
 
     if (it.id === "print:wor:set") {
       unitEur = PRICE_SET;
@@ -192,10 +197,11 @@ export async function POST(req: Request) {
       hasPhysical = true;
       bookNeed.set(it.id, (bookNeed.get(it.id) ?? 0) + qty);
     } else if (it.id.startsWith(VOUCHER_ID_PREFIX)) {
-      // Public gift vouchers (workshop-page buttons) — strictly priced from the CMS tier, never the
-      // client; an unknown voucher falls through to the "couldn't be priced" guard below.
+      // Workshop/coaching gift vouchers — strictly priced from the CMS tier, never the client; an
+      // unknown voucher falls through to the "couldn't be priced" guard below.
       unitEur = voucherPrice.get(it.id) ?? null;
-      label = (it.title || "Gift voucher").slice(0, 200);
+      label = (it.title || "Workshop voucher").slice(0, 200);
+      description = VOUCHER_DESCRIPTION;
     } else if (it.id === CUSTOM_SERVICE_ID || it.id.startsWith(`${CUSTOM_SERVICE_ID}:`)) {
       // Buyer-entered agreed amount, encoded in the id (service:custom:<amount>).
       const p = Number.parseInt(it.id.split(":")[2] ?? "", 10);
@@ -229,7 +235,11 @@ export async function POST(req: Request) {
 
     lineItems.push({
       quantity: qty,
-      price_data: { currency: "eur", unit_amount: Math.round(unitEur * 100), product_data: { name: label } },
+      price_data: {
+        currency: "eur",
+        unit_amount: Math.round(unitEur * 100),
+        product_data: { name: label, ...(description ? { description } : {}) },
+      },
     });
     cartMeta.push(`${it.id}|${qty}`);
   }
