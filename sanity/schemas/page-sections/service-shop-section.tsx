@@ -11,6 +11,20 @@ export const serviceShopSection = defineField({
     defineField({ name: "heading", type: "string", title: "Heading" }),
     defineField({ name: "intro", type: "text", rows: 3, title: "Intro" }),
     defineField({
+      name: "layout",
+      type: "string",
+      title: "Layout",
+      description: "Dropdown: one menu to pick an option (best for a hidden, post-enquiry shop). Grid: a card per option.",
+      options: {
+        list: [
+          { title: "Dropdown menu", value: "dropdown" },
+          { title: "Grid of cards", value: "grid" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "dropdown",
+    }),
+    defineField({
       name: "items",
       type: "array",
       title: "Items (set price)",
@@ -27,6 +41,12 @@ export const serviceShopSection = defineField({
               type: "string",
               title: "Note",
               description: "Optional one-line detail (duration, what's included).",
+            }),
+            defineField({
+              name: "group",
+              type: "string",
+              title: "Group",
+              description: "Optional heading this option sits under in the dropdown (e.g. “Private workshops”).",
             }),
           ],
           preview: {

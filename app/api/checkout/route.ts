@@ -4,6 +4,14 @@ import Stripe from "stripe";
 import { PRICE_SET, PRICE_SINGLE, WORKS } from "~/app/(web)/wonders-of-reflection/works";
 import { env } from "~/env";
 import { sanityFetch } from "~/features/sanity/client";
+import {
+  CUSTOM_SERVICE_ID,
+  parseEuroPrice,
+  SERVICE_ID_PREFIX,
+  serviceId,
+  VOUCHER_ID_PREFIX,
+  voucherId,
+} from "~/features/store/services";
 import { printSkusConsumedBy } from "~/features/store/stock";
 import { isDiscountablePrint, voucherFor } from "~/features/store/voucher";
 
@@ -20,9 +28,20 @@ type BookRows = Array<{
 
 type StockDoc = { items: Array<{ sku: string | null; stock: number | null }> | null } | null;
 
+// Authoritative prices for buyable workshops/services + vouchers, gathered from every page so the
+// server never trusts the amount sent from the browser cart. Returns per-page arrays we flatten.
+type ServicePriceRows = Array<{
+  services: Array<{ name: string | null; price: number | null }> | null;
+  vouchers: Array<{ title: string | null; price: string | null }> | null;
+} | null>;
+
 // Authoritative book data — never trust a price sent from the browser cart (localStorage).
 const BookRowsQ = defineQuery(`*[_type == "book"]{ "bookId": _id, title, variants[]{ "key": _key, name, price, stock } }`);
 const StockQ = defineQuery(`*[_id == "storeStock"][0]{ "items": items[]{ sku, stock } }`);
+const ServicePricesQ = defineQuery(`*[_type == "page"]{
+  "services": pageBuilder.sectionsArray[_type == "serviceShopSectionField"].sectionContent.items[]{ name, price },
+  "vouchers": pageBuilder.sectionsArray[_type == "workshopPricingSectionField"].sectionContent.tiers[sellAsVoucher == true]{ title, price },
+}`);
 
 /**
  * Flat shipping rates shown at checkout (in cents). The buyer picks the one for their region.
@@ -102,10 +121,28 @@ export async function POST(req: Request) {
   // Validated here (never trusted from the client); applies to single prints only.
   const voucher = voucherFor(body.promoCode);
 
-  const [books, stockDoc] = await Promise.all([
+  const [books, stockDoc, servicePriceRows] = await Promise.all([
     sanityFetch<BookRows>({ query: BookRowsQ, options: { next: { revalidate: 30 } } }),
     sanityFetch<StockDoc>({ query: StockQ, options: { next: { revalidate: 30 } } }),
+    sanityFetch<ServicePriceRows>({ query: ServicePricesQ, options: { next: { revalidate: 30 } } }),
   ]);
+
+  // Authoritative service/voucher prices keyed by their cart id (same id scheme as the storefront).
+  const servicePrice = new Map<string, number>();
+  const voucherPrice = new Map<string, number>();
+  for (const page of servicePriceRows ?? []) {
+    for (const svc of page?.services ?? []) {
+      if (svc?.name && typeof svc.price === "number" && svc.price > 0) {
+        servicePrice.set(serviceId(svc.name), Math.round(svc.price));
+      }
+    }
+    for (const vch of page?.vouchers ?? []) {
+      const price = parseEuroPrice(vch?.price);
+      if (vch?.title && price != null) {
+        voucherPrice.set(voucherId(vch.title), price);
+      }
+    }
+  }
 
   const bookPrice = new Map<string, number>();
   const bookLabel = new Map<string, string>();
@@ -154,8 +191,24 @@ export async function POST(req: Request) {
       label = bookLabel.get(it.id) ?? label;
       hasPhysical = true;
       bookNeed.set(it.id, (bookNeed.get(it.id) ?? 0) + qty);
-    } else if (it.id.startsWith("service:") || it.id.startsWith("workshop:")) {
-      // Hidden post-contact services; custom amounts are buyer-entered. Interim: use the sent price.
+    } else if (it.id.startsWith(VOUCHER_ID_PREFIX)) {
+      // Public gift vouchers (workshop-page buttons) — strictly priced from the CMS tier, never the
+      // client; an unknown voucher falls through to the "couldn't be priced" guard below.
+      unitEur = voucherPrice.get(it.id) ?? null;
+      label = (it.title || "Gift voucher").slice(0, 200);
+    } else if (it.id === CUSTOM_SERVICE_ID || it.id.startsWith(`${CUSTOM_SERVICE_ID}:`)) {
+      // Buyer-entered agreed amount, encoded in the id (service:custom:<amount>).
+      const p = Number.parseInt(it.id.split(":")[2] ?? "", 10);
+      if (Number.isFinite(p) && p > 0) {
+        unitEur = p;
+      }
+    } else if (it.id.startsWith(SERVICE_ID_PREFIX)) {
+      // Hidden post-enquiry services — priced from the CMS item (falls back to the sent price only
+      // for a legacy id no longer in the CMS, so an old cart still checks out).
+      const p = Number(it.price);
+      unitEur = servicePrice.get(it.id) ?? (Number.isFinite(p) && p > 0 ? Math.round(p) : null);
+    } else if (it.id.startsWith("workshop:")) {
+      // Bookable-workshop action (WorkshopPurchase) — sent price (set per page in the CMS).
       const p = Number(it.price);
       if (Number.isFinite(p) && p > 0) {
         unitEur = Math.round(p);

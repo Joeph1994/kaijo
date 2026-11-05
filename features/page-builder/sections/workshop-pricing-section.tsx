@@ -1,5 +1,7 @@
 import { defineQuery, stegaClean } from "next-sanity";
 import { sanityFetch } from "~/features/sanity/client";
+import { parseEuroPrice } from "~/features/store/services";
+import { VoucherPurchase } from "~/features/store/voucher-purchase";
 import { WorkshopPurchase } from "~/features/store/workshop-purchase";
 import type { WorkshopPricingSectionQResult } from "~/sanity/types";
 import { WorkshopBookingForm } from "./workshop-booking-form";
@@ -10,7 +12,7 @@ const WorkshopPricingSectionQ =
       heading,
       lead,
       purchase,
-      tiers[]{ "key": _key, title, price, description },
+      tiers[]{ "key": _key, title, price, description, sellAsVoucher, voucherNote },
       note,
       bookingHeading,
       bookingIntro,
@@ -59,13 +61,21 @@ export async function WorkshopPricingSection({ docId, sectionKey }: { docId: str
           {content.lead && <p className="workshop-pricing_lead">{content.lead}</p>}
         </div>
         <div className="workshop-pricing_grid">
-          {content.tiers.map((tier) => (
-            <div key={tier.key} className="workshop-pricing_tier">
-              <span className="workshop-pricing_tier-price">{tier.price || "On request"}</span>
-              <span className="workshop-pricing_tier-title">{tier.title}</span>
-              {tier.description && <p className="workshop-pricing_tier-desc">{tier.description}</p>}
-            </div>
-          ))}
+          {content.tiers.map((tier) => {
+            // A tier flagged "sell as voucher" with a numeric price gets a direct Buy button; the
+            // rest stay display-only (enquire via the booking box).
+            const voucherPrice = tier.sellAsVoucher ? parseEuroPrice(tier.price) : null;
+            return (
+              <div key={tier.key} className="workshop-pricing_tier">
+                <span className="workshop-pricing_tier-price">{tier.price || "On request"}</span>
+                <span className="workshop-pricing_tier-title">{tier.title}</span>
+                {tier.description && <p className="workshop-pricing_tier-desc">{tier.description}</p>}
+                {voucherPrice != null && (
+                  <VoucherPurchase label={stegaClean(tier.title) ?? ""} price={voucherPrice} note={tier.voucherNote} />
+                )}
+              </div>
+            );
+          })}
           {showBooking && (
             <div className="workshop-booking-cell">
               {purchasable && purchasePrice != null && (

@@ -617,10 +617,12 @@ export type ServiceShopSection = {
   _type: "serviceShopSection";
   heading?: string;
   intro?: string;
+  layout?: "dropdown" | "grid";
   items?: Array<{
     name?: string;
     price?: number;
     note?: string;
+    group?: string;
     _type: "serviceShopItem";
     _key: string;
   }>;
@@ -756,6 +758,8 @@ export type WorkshopPricingSection = {
     title?: string;
     price?: string;
     description?: string;
+    sellAsVoucher?: boolean;
+    voucherNote?: string;
     _type: "pricingTier";
     _key: string;
   }>;
@@ -2583,18 +2587,26 @@ export type ProjectSlugsQResult = Array<{
   slug: string | undefined;
 }>;
 
-// Source: app/api/checkout/route.ts
-// Variable: BookPricesQ
-// Query: *[_type == "book"]{ "bookId": _id, title, variants[]{ "key": _key, name, price } }
-export type BookPricesQResult = Array<{
-  bookId: string;
-  title: string | undefined;
-  variants: Array<{
-    key: string;
-    name: string | undefined;
-    price: number | undefined;
-  }> | undefined;
-}>;
+// Source: app/(web)/wonders-of-reflection/page.tsx
+// Variable: StockQ
+// Query: *[_id == "storeStock"][0]{ "items": items[]{ sku, stock } }
+export type StockQResult =
+  | {
+      items: null;
+    }
+  | {
+      items: Array<{
+        sku: string | undefined;
+        stock: null;
+      }> | undefined;
+    }
+  | {
+      items: Array<{
+        sku: string | undefined;
+        stock: number | undefined;
+      }> | undefined;
+    }
+  | undefined;
 
 // Source: app/sitemap.ts
 // Variable: SitemapQ
@@ -4257,15 +4269,17 @@ export type ProjectHeroQResult = Array<{
 
 // Source: features/page-builder/sections/service-shop-section.tsx
 // Variable: ServiceShopSectionQ
-// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "serviceShopSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      intro,      items[]{ name, price, note },      customEnabled,      customLabel,      customNote,      footnote,    },    "settings": sectionSettings{      "hash": coalesce(sectionHash.current, _key),    },}
+// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "serviceShopSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      intro,      layout,      items[]{ name, price, note, group },      customEnabled,      customLabel,      customNote,      footnote,    },    "settings": sectionSettings{      "hash": coalesce(sectionHash.current, _key),    },}
 export type ServiceShopSectionQResult = {
   content: {
     heading: string | undefined;
     intro: string | undefined;
+    layout: "dropdown" | "grid" | undefined;
     items: Array<{
       name: string | undefined;
       price: number | undefined;
       note: string | undefined;
+      group: string | undefined;
     }> | undefined;
     customEnabled: boolean | undefined;
     customLabel: string | undefined;
@@ -4934,7 +4948,7 @@ export type WorkshopNotesSectionQResult = {
 
 // Source: features/page-builder/sections/workshop-pricing-section.tsx
 // Variable: WorkshopPricingSectionQ
-// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "workshopPricingSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      lead,      purchase,      tiers[]{ "key": _key, title, price, description },      note,      bookingHeading,      bookingIntro,      bookingExtraOptions    }}
+// Query: *[_id == $docId][0].pageBuilder.sectionsArray[_type == "workshopPricingSectionField" && _key == $sectionKey][0]{    "content": sectionContent{      heading,      lead,      purchase,      tiers[]{ "key": _key, title, price, description, sellAsVoucher, voucherNote },      note,      bookingHeading,      bookingIntro,      bookingExtraOptions    }}
 export type WorkshopPricingSectionQResult = {
   content: {
     heading: string | undefined;
@@ -4945,6 +4959,8 @@ export type WorkshopPricingSectionQResult = {
       title: string | undefined;
       price: string | undefined;
       description: string | undefined;
+      sellAsVoucher: boolean | undefined;
+      voucherNote: string | undefined;
     }> | undefined;
     note: string | undefined;
     bookingHeading: string | undefined;

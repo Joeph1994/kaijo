@@ -1903,6 +1903,92 @@ html.home-route .section_feature-links {
   opacity: 0.6;
 }
 
+/* Dropdown layout of the service shop (hidden /book): one menu to choose, plus the custom card. */
+.service-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 34em;
+  margin-top: 2em;
+}
+
+.service-picker_field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.service-picker_label {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.service-picker_select {
+  width: 100%;
+  padding: 0.8em 2.25em 0.8em 0.9em;
+  border: 1px solid var(--page-ink);
+  background: transparent;
+  color: var(--page-ink);
+  font: inherit;
+  /* Custom caret so the native select matches the site's flat, bordered controls. */
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.1em) 1.1em,
+    calc(100% - 0.75em) 1.1em;
+  background-size:
+    0.35em 0.35em,
+    0.35em 0.35em;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.service-picker_select:focus-visible {
+  outline: 2px solid var(--page-ink);
+  outline-offset: 2px;
+}
+
+.service-picker_note {
+  margin: 0;
+  font-size: 0.85em;
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+.service-picker_add {
+  align-self: flex-start;
+  padding: 0.75em 1.4em;
+  border: 1px solid var(--page-ink);
+  background: var(--page-ink);
+  color: var(--page-bg);
+  font-family: "Basier Circle Mono", Arial, sans-serif;
+  font-size: 0.72em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.service-picker_add:hover:not(:disabled) {
+  background: transparent;
+  color: var(--page-ink);
+}
+
+.service-picker_add:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* The custom-amount card sits in its own narrow column under the dropdown. */
+.service-picker .service-shop_item--custom {
+  margin-top: 0.5em;
+}
+
 /* ==========================================================================
    Wonders of Reflection — hidden exhibition landing + print shop (/wonders-of-reflection).
    Theme-adaptive: uses the site's --page-bg / --page-ink so it toggles light/dark like the rest.
@@ -3169,6 +3255,50 @@ html.home-route .section_feature-links {
   text-align: left;
   font-size: 0.9em;
   line-height: 1.5;
+}
+
+/* "Buy as voucher" on a directly-purchasable tier — sits at the foot of the tier card. */
+.tier-voucher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-top: auto;
+  padding-top: 1em;
+}
+
+.tier-voucher_button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.85em 1.1em;
+  border: 1px solid var(--page-ink);
+  background: var(--page-ink);
+  color: var(--page-bg);
+  font-family: "Basier Circle Mono", Arial, sans-serif;
+  font-size: 0.72em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.tier-voucher_button:hover {
+  background: transparent;
+  color: var(--page-ink);
+}
+
+.tier-voucher_price {
+  font-size: 1.15em;
+  letter-spacing: 0.02em;
+}
+
+.tier-voucher_note {
+  font-size: 0.78em;
+  line-height: 1.4;
+  opacity: 0.65;
 }
 
 .workshop-pricing_note {

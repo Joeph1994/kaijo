@@ -8,7 +8,8 @@ const ServiceShopSectionQ =
     "content": sectionContent{
       heading,
       intro,
-      items[]{ name, price, note },
+      layout,
+      items[]{ name, price, note, group },
       customEnabled,
       customLabel,
       customNote,
@@ -34,7 +35,14 @@ export async function ServiceShopSection({ docId, sectionKey }: { docId: string;
 
   const items = (content.items ?? [])
     .filter((item) => Boolean(item?.name) && typeof item?.price === "number")
-    .map((item) => ({ name: item.name as string, price: item.price as number, note: item.note ?? null }));
+    .map((item) => ({
+      name: item.name as string,
+      price: item.price as number,
+      note: item.note ?? null,
+      group: item.group ?? null,
+    }));
+
+  const layout = content.layout === "grid" ? "grid" : "dropdown";
 
   return (
     <div
@@ -52,6 +60,7 @@ export async function ServiceShopSection({ docId, sectionKey }: { docId: string;
           {content.intro && <p className="service-shop_intro">{content.intro}</p>}
           <ServiceShop
             items={items}
+            layout={layout}
             customEnabled={content.customEnabled ?? false}
             customLabel={content.customLabel ?? null}
             customNote={content.customNote ?? null}
