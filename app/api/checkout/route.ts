@@ -13,7 +13,7 @@ import {
   voucherId,
 } from "~/features/store/services";
 import { printSkusConsumedBy } from "~/features/store/stock";
-import { isDiscountablePrint, voucherFor } from "~/features/store/voucher";
+import { discountedUnit, voucherFor } from "~/features/store/voucher";
 
 export const runtime = "nodejs";
 
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
   }
 
-  // Validated here (never trusted from the client); applies to single prints only.
+  // Validated here (never trusted from the client). WOFVIP = € off each print; LAUNCH25 = % off all.
   const voucher = voucherFor(body.promoCode);
 
   const [books, stockDoc, servicePriceRows] = await Promise.all([
@@ -221,8 +221,8 @@ export async function POST(req: Request) {
       }
     }
 
-    if (voucher && unitEur != null && isDiscountablePrint(it.id)) {
-      unitEur = Math.max(1, unitEur - voucher.singlePrintDiscount);
+    if (voucher && unitEur != null) {
+      unitEur = discountedUnit(voucher, it.id, unitEur);
     }
 
     if (unitEur == null || unitEur <= 0) {

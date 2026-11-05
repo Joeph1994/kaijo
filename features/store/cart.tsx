@@ -3,7 +3,10 @@
 import { useHotkeys } from "@mantine/hooks";
 import * as React from "react";
 import { useCart } from "./cart-context";
-import { isDiscountablePrint, voucherFor } from "./voucher";
+import { previewDiscount, voucherFor } from "./voucher";
+
+/** Whole euros stay clean; a percentage discount can leave cents, so show those. */
+const money = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(2));
 
 export function Cart() {
   const { items, count, subtotal, open, setOpen, remove, setQty } = useCart();
@@ -17,9 +20,10 @@ export function Cart() {
 
   // Preview only — the server re-validates and applies the real discount at checkout.
   const voucher = voucherFor(appliedCode);
-  const printUnits = items.reduce((n, i) => (isDiscountablePrint(i.id) ? n + i.qty : n), 0);
-  const discount = voucher ? voucher.singlePrintDiscount * printUnits : 0;
+  const discount = previewDiscount(voucher, items);
   const total = Math.max(0, subtotal - discount);
+  // A print-only code (WOFVIP) needs a print in the cart to do anything; a % code applies to all.
+  const needsPrint = Boolean(voucher?.singlePrintDiscount) && discount === 0;
 
   function applyVoucher() {
     const v = voucherFor(voucherInput);
@@ -124,7 +128,7 @@ export function Cart() {
                       <div className="cart-voucher_applied">
                         <span>
                           Voucher <strong>{voucher.code}</strong> applied
-                          {printUnits === 0 ? " — add a print to use it" : ""}
+                          {needsPrint ? " — add a print to use it" : ""}
                         </span>
                         <button
                           type="button"
@@ -167,11 +171,11 @@ export function Cart() {
                     <>
                       <div className="cart-panel_subtotal cart-panel_discount">
                         <span>Voucher {voucher?.code}</span>
-                        <span>−€{discount}</span>
+                        <span>−€{money(discount)}</span>
                       </div>
                       <div className="cart-panel_subtotal cart-panel_total">
                         <span>Total</span>
-                        <span>€{total}</span>
+                        <span>€{money(total)}</span>
                       </div>
                     </>
                   )}

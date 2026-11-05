@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { env } from "~/env";
 import { sanityEditClient } from "~/features/sanity/client";
 import { printSkusConsumedBy } from "~/features/store/stock";
+import { voucherFor } from "~/features/store/voucher";
 import { generateVoucherCode, isVoucherSku, voucherSubject } from "~/features/store/voucher-code";
 import { renderVoucherPdf, voucherPdfAssets } from "~/features/store/voucher-pdf";
 
@@ -134,20 +135,25 @@ export async function POST(req: Request) {
   const orderNo = `ORD-${sessionId.slice(-8).toUpperCase()}`;
   const now = new Date();
 
-  // One unique gift-voucher code per voucher unit bought (qty > 1 → one code each).
+  // One unique gift-voucher code per voucher unit bought (qty > 1 → one code each). The PDF shows the
+  // full face value — if bought on a % sale, un-discount the paid price so the voucher is honoured at
+  // its full workshop value.
+  const salePct = voucherFor(session.metadata?.voucher)?.percentOff ?? 0;
   const voucherJobs: Array<{ code: string; subject: string; value: number | null }> = [];
   orderItems.forEach((item, i) => {
     if (!isVoucherSku(item.sku)) {
       return;
     }
     const subject = voucherSubject(item.label);
+    const paid = item.unitPrice ?? null;
+    const faceValue = paid != null && salePct > 0 ? Math.round(paid / (1 - salePct / 100)) : paid;
     for (let unit = 0; unit < (item.qty || 1); unit++) {
       const code = generateVoucherCode({
         voucherSku: item.sku,
         purchasedAt: now,
         uniqueSeed: `${sessionId}:${i}:${unit}`,
       });
-      voucherJobs.push({ code, subject, value: item.unitPrice ?? null });
+      voucherJobs.push({ code, subject, value: faceValue });
     }
   });
 
