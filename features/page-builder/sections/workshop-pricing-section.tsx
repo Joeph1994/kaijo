@@ -3,6 +3,7 @@ import { sanityFetch } from "~/features/sanity/client";
 import { parseEuroPrice } from "~/features/store/services";
 import { type VoucherOption, VoucherPicker } from "~/features/store/voucher-picker";
 import { WorkshopPurchase } from "~/features/store/workshop-purchase";
+import { cx } from "~/features/style/utils";
 import type { WorkshopPricingSectionQResult } from "~/sanity/types";
 import { WorkshopBookingForm } from "./workshop-booking-form";
 
@@ -58,9 +59,9 @@ export async function WorkshopPricingSection({ docId, sectionKey }: { docId: str
   // (e.g. "Coaching options") can share the layout without minting a duplicate id.
   const ownsEnquireAnchor = Boolean(content.bookingHeading) || purchasable;
   const showBooking = ownsEnquireAnchor || hasVouchers;
-  // Once a block can be booked directly (voucher or Book & pay), the enquiry form is the secondary
-  // "ask first" path rather than the primary call to action.
-  const secondaryEnquire = purchasable || hasVouchers;
+  // The enquiry form keeps its own CMS heading/intro ("Book or enquire" by default); the voucher
+  // picker sits beside it rather than replacing that copy.
+  const enquireHeading = content.bookingHeading || "Book or enquire";
 
   return (
     <div id={ownsEnquireAnchor ? "enquire" : undefined} className="section_workshop-pricing section-padding-top">
@@ -82,16 +83,12 @@ export async function WorkshopPricingSection({ docId, sectionKey }: { docId: str
             </div>
           ))}
           {showBooking && (
-            <div className="workshop-booking-cell">
+            <div className={cx("workshop-booking-cell", hasVouchers && "workshop-booking-cell--split")}>
               {hasVouchers && <VoucherPicker options={voucherOptions} />}
               {purchasable && purchasePrice != null && (
                 <WorkshopPurchase id={docId} name={purchaseName} session={content.lead} price={purchasePrice} />
               )}
-              <WorkshopBookingForm
-                heading={secondaryEnquire ? "Prefer to ask first?" : content.bookingHeading}
-                intro={secondaryEnquire ? "Not ready to book — send a question and I'll reply by email." : content.bookingIntro}
-                options={options}
-              />
+              <WorkshopBookingForm heading={enquireHeading} intro={content.bookingIntro} options={options} />
             </div>
           )}
         </div>

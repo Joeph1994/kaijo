@@ -3197,6 +3197,22 @@ html.home-route .section_feature-links {
   gap: 1em;
 }
 
+/* When a block sells vouchers, the voucher picker and the enquiry sit side by side in a full-width
+   band below the tiers (stacked on narrow screens). */
+.workshop-booking-cell--split {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5em;
+  align-items: start;
+}
+
+@media screen and (max-width: 767px) {
+  .workshop-booking-cell--split {
+    grid-template-columns: 1fr;
+  }
+}
+
 .workshop-purchase {
   display: flex;
   flex-direction: column;
