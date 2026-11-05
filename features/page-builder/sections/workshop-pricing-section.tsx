@@ -1,4 +1,5 @@
 import { defineQuery, stegaClean } from "next-sanity";
+import type * as React from "react";
 import { sanityFetch } from "~/features/sanity/client";
 import { parseEuroPrice } from "~/features/store/services";
 import { type VoucherOption, VoucherPicker } from "~/features/store/voucher-picker";
@@ -74,7 +75,10 @@ export async function WorkshopPricingSection({ docId, sectionKey }: { docId: str
           )}
           {content.lead && <p className="workshop-pricing_lead">{content.lead}</p>}
         </div>
-        <div className="workshop-pricing_grid">
+        <div
+          className="workshop-pricing_grid"
+          style={{ "--tier-cols": Math.max(2, content.tiers.length) } as React.CSSProperties}
+        >
           {content.tiers.map((tier) => (
             <div key={tier.key} className="workshop-pricing_tier">
               <span className="workshop-pricing_tier-price">{tier.price || "On request"}</span>

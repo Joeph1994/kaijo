@@ -3164,9 +3164,11 @@ html.home-route .section_feature-links {
 
 .workshop-pricing_grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* One even row of tiers per block (count set per section) + equal heights, so no tier is left
+     orphaned on a half-empty row and a longer description can't make one box taller than the rest. */
+  grid-template-columns: repeat(var(--tier-cols, 3), 1fr);
   gap: 1.5em;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media screen and (max-width: 991px) {
@@ -3195,16 +3197,27 @@ html.home-route .section_feature-links {
   display: flex;
   flex-direction: column;
   gap: 1em;
+  /* Shared "dark grey" panel look for the voucher + enquiry boxes (distinct from the white tiers). */
+  --panel-bg: #2b2b2b;
+  --panel-ink: #f3f3f3;
+  --panel-line: rgba(255, 255, 255, 0.18);
+  --panel-muted: rgba(255, 255, 255, 0.62);
 }
 
 /* When a block sells vouchers, the voucher picker and the enquiry sit side by side in a full-width
-   band below the tiers (stacked on narrow screens). */
+   band below the tiers, matched in height (stacked on narrow screens). */
 .workshop-booking-cell--split {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5em;
-  align-items: start;
+  align-items: stretch;
+}
+
+/* Inside the split band the enquiry stays in its own half when expanded (its default full-width
+   span is for the standalone booking cell, not the two-up voucher layout). */
+.workshop-booking-cell--split .workshop-booking--expanded {
+  grid-column: auto;
 }
 
 @media screen and (max-width: 767px) {
@@ -3278,8 +3291,10 @@ html.home-route .section_feature-links {
   display: flex;
   flex-direction: column;
   gap: 1em;
-  padding: 1.25em 1.5em 1.5em;
-  border: 1px solid var(--page-ink);
+  padding: 1.5em 1.5em 1.6em;
+  background: var(--panel-bg);
+  color: var(--panel-ink);
+  border: 1px solid var(--panel-line);
 }
 
 .voucher-picker_head {
@@ -3299,7 +3314,7 @@ html.home-route .section_feature-links {
   margin: 0;
   font-size: 0.82em;
   line-height: 1.5;
-  opacity: 0.7;
+  color: var(--panel-muted);
 }
 
 .voucher-picker_field {
@@ -3312,15 +3327,15 @@ html.home-route .section_feature-links {
   font-size: 0.78em;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.7;
+  color: var(--panel-muted);
 }
 
 .voucher-picker_select {
   width: 100%;
   padding: 0.75em 2.25em 0.75em 0.9em;
-  border: 1px solid var(--page-ink);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   background: transparent;
-  color: var(--page-ink);
+  color: var(--panel-ink);
   font: inherit;
   /* Custom caret so the native select matches the site's flat, bordered controls. */
   appearance: none;
@@ -3337,15 +3352,20 @@ html.home-route .section_feature-links {
 }
 
 .voucher-picker_select:focus-visible {
-  outline: 2px solid var(--page-ink);
+  outline: 2px solid var(--panel-ink);
   outline-offset: 2px;
+}
+
+/* Options render in the OS popup (light), so give them explicit dark-on-light for legibility. */
+.voucher-picker_select option {
+  color: #111111;
 }
 
 .voucher-picker_add {
   padding: 0.85em 1.25em;
-  border: 1px solid var(--page-ink);
-  background: var(--page-ink);
-  color: var(--page-bg);
+  border: 1px solid var(--panel-ink);
+  background: var(--panel-ink);
+  color: #141414;
   font-family: "Basier Circle Mono", Arial, sans-serif;
   font-size: 0.72em;
   text-transform: uppercase;
@@ -3358,7 +3378,7 @@ html.home-route .section_feature-links {
 
 .voucher-picker_add:hover:not(:disabled) {
   background: transparent;
-  color: var(--page-ink);
+  color: var(--panel-ink);
 }
 
 .voucher-picker_add:disabled {
@@ -3384,9 +3404,9 @@ html.home-route .section_feature-links {
   flex-direction: column;
   gap: 1em;
   padding: 1.75em;
-  border: 1px solid var(--page-ink);
-  background: var(--colors--black);
-  color: #fff;
+  border: 1px solid var(--panel-line, rgba(255, 255, 255, 0.18));
+  background: var(--panel-bg, #2b2b2b);
+  color: var(--panel-ink, #f3f3f3);
   text-align: left;
 }
 
