@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
 import { env } from "~/env";
+import { recordEnquiry } from "~/features/sanity/record-enquiry";
 
 /** Enquiries are always delivered here — never trust a client-supplied recipient. */
 const ENQUIRY_TO = "me@joephijwegen.com";
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
     console.error("Contact enquiry: Resend error", error);
     return NextResponse.json({ ok: false, error: "Something went wrong sending your enquiry." }, { status: 502 });
   }
+
+  await recordEnquiry({ kind: "contact", subject, email, message });
 
   return NextResponse.json({ ok: true });
 }

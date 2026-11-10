@@ -1,7 +1,7 @@
-import * as changeCase from "change-case";
 import type { StructureBuilder } from "sanity/structure";
+import { StoreOverview } from "./components/store-overview";
 import { sanityConfig } from "./config";
-import { API_ONLY_DOCUMENTS, SINGLETON_IDS, TEMPLATE_IDS } from "./constants";
+import { SINGLETON_IDS, TEMPLATE_IDS } from "./constants";
 
 /**
  * Create a list item that maps to a single document.
@@ -31,6 +31,60 @@ function singleton(
   }
 
   return S.listItem().title(title).id(documentId).icon(icon).child(doc);
+}
+
+/**
+ * The Store hub — one place for the shop: an at-a-glance Overview plus Orders, Enquiries, Books and
+ * Print stock as tabs. Mirrors the "shop overview" feel of a hosted store.
+ */
+function storeHub(S: StructureBuilder) {
+  return S.listItem()
+    .title("Store")
+    .id("store")
+    .icon(() => <>🛍️</>)
+    .child(
+      S.list()
+        .title("Store")
+        .items([
+          S.listItem()
+            .title("Overview")
+            .id("store-overview")
+            .icon(() => <>📊</>)
+            .child(S.component(StoreOverview).title("Overview").id("store-overview")),
+
+          S.listItem()
+            .title("Orders")
+            .icon(() => <>🧾</>)
+            .child(
+              S.documentTypeList("order")
+                .title("Orders")
+                .defaultOrdering([{ field: "placedAt", direction: "desc" }])
+            ),
+
+          S.listItem()
+            .title("Enquiries")
+            .icon(() => <>📧</>)
+            .child(
+              S.documentTypeList("contactFormSubmission")
+                .title("Enquiries")
+                .defaultOrdering([{ field: "receivedAt", direction: "desc" }])
+            ),
+
+          S.divider(),
+
+          S.listItem()
+            .title("Books")
+            .icon(() => <>📄</>)
+            .child(S.documentTypeList("book").title("Books")),
+
+          singleton(S, {
+            title: "Print stock",
+            schemaType: "storeStock",
+            documentId: SINGLETON_IDS.storeStock,
+            icon: () => <>📦</>,
+          }),
+        ])
+    );
 }
 
 export function buildStructure(S: StructureBuilder) {
@@ -64,31 +118,6 @@ export function buildStructure(S: StructureBuilder) {
             )
         ),
 
-      S.listItem()
-        .title("Books")
-        .icon(() => <>📄</>)
-        .child(S.documentTypeList("book").title("Books")),
-
-      S.listItem()
-        .title("Orders")
-        .icon(() => <>🧾</>)
-        .child(
-          S.documentTypeList("order")
-            .title("Orders")
-            .defaultOrdering([{ field: "placedAt", direction: "desc" }])
-        ),
-
-      singleton(S, {
-        title: "Print stock",
-        schemaType: "storeStock",
-        documentId: SINGLETON_IDS.storeStock,
-        icon: () => <>📦</>,
-      }),
-
-      // PLOP: Add Structure
-
-      S.divider(),
-
       // Projects
       S.listItem()
         .title("Projects")
@@ -107,22 +136,8 @@ export function buildStructure(S: StructureBuilder) {
 
       S.divider(),
 
-      // Form Submissions (driven by API_ONLY_DOCUMENTS)
-      S.listItem()
-        .title("Form Submissions")
-        .icon(() => <>📥</>)
-        .child(
-          S.list()
-            .title("Form Submissions")
-            .items(
-              Object.values(API_ONLY_DOCUMENTS).map((schemaType) =>
-                S.listItem()
-                  .title(changeCase.capitalCase(schemaType))
-                  .icon(() => <>📩</>)
-                  .child(S.documentTypeList(schemaType).title(changeCase.capitalCase(schemaType)))
-              )
-            )
-        ),
+      // PLOP: Add Structure
+      storeHub(S),
 
       S.divider(),
 

@@ -9326,14 +9326,28 @@
           "type": "string"
         }
       },
-      "firstName": {
+      "kind": {
         "type": "objectAttribute",
         "value": {
-          "type": "string"
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "contact"
+            },
+            {
+              "type": "string",
+              "value": "workshop"
+            },
+            {
+              "type": "string",
+              "value": "print"
+            }
+          ]
         },
         "optional": true
       },
-      "lastName": {
+      "subject": {
         "type": "objectAttribute",
         "value": {
           "type": "string"
@@ -9347,10 +9361,31 @@
         },
         "optional": true
       },
+      "size": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
       "message": {
         "type": "objectAttribute",
         "value": {
           "type": "string"
+        },
+        "optional": true
+      },
+      "receivedAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "replied": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
         },
         "optional": true
       }

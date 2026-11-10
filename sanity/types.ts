@@ -1480,10 +1480,13 @@ export type ContactFormSubmission = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  firstName?: string;
-  lastName?: string;
+  kind?: "contact" | "workshop" | "print";
+  subject?: string;
   email?: string;
+  size?: string;
   message?: string;
+  receivedAt?: string;
+  replied?: boolean;
 };
 
 export type PortfolioReference = {

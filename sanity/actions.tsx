@@ -148,8 +148,10 @@ export function createDocumentActions(prev: DocumentActionComponent[], ctx: Docu
   }
 
   if (apiOnlyTypes.includes(schemaType) || apiOnlyTypes.includes(documentId)) {
+    // Publish is allowed so editable status fields (e.g. an enquiry's "Replied" tick) can be saved;
+    // the data fields themselves are read-only in the schema.
     builtInActions = prev.filter(({ action }) => {
-      return action && ["delete", "discardChanges"].includes(action);
+      return action && ["publish", "delete", "discardChanges"].includes(action);
     });
   }
 
