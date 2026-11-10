@@ -28,7 +28,7 @@
     "test": "node --import=tsx --test \"scripts/**/*.test.ts\" \"features/**/*.test.ts\" \"sanity/**/*.test.ts\"",
     "format": "biome check --write --unsafe",
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/sanity-dashboard-register.mjs; next build",
     "start": "next start",
     "sanity:typegen": "dotenvx run -- sh -c \"sanity schema extract --path='sanity-schema.json' && sanity typegen generate && sed -i.bak 's/| null/| undefined/g; s/null |/undefined |/g; s/{} |//g; s/| {}//g' sanity/types.ts && rm sanity/types.ts.bak\"",
     "sanity:cli": "dotenvx run -- sanity",
