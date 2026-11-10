@@ -1,12 +1,12 @@
-import { Document, Font, Image, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
 
-/** Font + image sources (URLs in production, local file paths for a sample render). */
+/** Font sources (URLs in production, local file paths for a sample render). */
 export type VoucherPdfAssets = {
   monoRegular: string;
   monoBold: string;
   display: string;
-  /** Handwritten signature image (transparent PNG). When absent, a typed name is used instead. */
-  signature?: string | null;
+  /** Handwritten script used for the "JH" signature mark. */
+  signatureFont: string;
 };
 
 export type VoucherPdfInput = {
@@ -18,16 +18,13 @@ export type VoucherPdfInput = {
   issuedAt: Date;
 };
 
-/** Public path of the handwritten-signature image, once added to `public/`. */
-export const VOUCHER_SIGNATURE_PATH = "/voucher/signature.png";
-
-/** Build the font (+ optional signature) sources from a site origin — fonts live in `public/fonts`. */
-export function voucherPdfAssets(origin: string, signature: boolean): VoucherPdfAssets {
+/** Build the font sources from a site origin — fonts live in `public/fonts`. */
+export function voucherPdfAssets(origin: string): VoucherPdfAssets {
   return {
     monoRegular: `${origin}/fonts/basiercirclemono-regular.ttf`,
     monoBold: `${origin}/fonts/basiercirclemono-bold.ttf`,
     display: `${origin}/fonts/art-grootfontein-flexible.otf`,
-    signature: signature ? `${origin}${VOUCHER_SIGNATURE_PATH}` : null,
+    signatureFont: `${origin}/fonts/mrs-saint-delafield-regular.ttf`,
   };
 }
 
@@ -44,6 +41,7 @@ function registerFonts(assets: VoucherPdfAssets) {
     ],
   });
   Font.register({ family: "Display", src: assets.display });
+  Font.register({ family: "Signature", src: assets.signatureFont });
   // Codes and the wordmark must never be hyphen-split across lines.
   Font.registerHyphenationCallback((word) => [word]);
   registered = true;
@@ -97,8 +95,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   signatureBlock: { width: 230 },
-  signatureImage: { height: 46, marginBottom: 4, objectFit: "contain", alignSelf: "flex-start" },
-  signatureScript: { fontFamily: "Display", fontSize: 24, marginBottom: 4 },
+  // Handwritten "JH" — negative tracking tangles the J and H, as chosen.
+  signatureScript: { fontFamily: "Signature", fontSize: 46, letterSpacing: -5, marginBottom: 2, color: INK },
   signatureRule: { borderTopWidth: 1, borderTopColor: LINE, paddingTop: 6, fontSize: 9, color: MUTED },
   issued: { fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: MUTED, textAlign: "right" },
   footer: {
@@ -133,7 +131,7 @@ function issuedStamp(when: Date): string {
   }).format(when);
 }
 
-function VoucherDocument({ input, assets }: { input: VoucherPdfInput; assets: VoucherPdfAssets }) {
+function VoucherDocument({ input }: { input: VoucherPdfInput }) {
   return (
     <Document title={`Voucher ${input.code}`} author="Joep Hijwegen">
       <Page size="A4" style={styles.page}>
@@ -161,11 +159,7 @@ function VoucherDocument({ input, assets }: { input: VoucherPdfInput; assets: Vo
 
         <View style={styles.signatureRow}>
           <View style={styles.signatureBlock}>
-            {assets.signature ? (
-              <Image src={assets.signature} style={styles.signatureImage} />
-            ) : (
-              <Text style={styles.signatureScript}>Joep Hijwegen</Text>
-            )}
+            <Text style={styles.signatureScript}>JH</Text>
             <Text style={styles.signatureRule}>Joep Hijwegen</Text>
           </View>
           <Text style={styles.issued}>
@@ -186,5 +180,5 @@ function VoucherDocument({ input, assets }: { input: VoucherPdfInput; assets: Vo
 /** Render a single voucher to a PDF buffer. */
 export async function renderVoucherPdf(input: VoucherPdfInput, assets: VoucherPdfAssets): Promise<Buffer> {
   registerFonts(assets);
-  return renderToBuffer(<VoucherDocument input={input} assets={assets} />);
+  return renderToBuffer(<VoucherDocument input={input} />);
 }

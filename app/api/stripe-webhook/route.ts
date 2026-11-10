@@ -11,8 +11,6 @@ import { renderVoucherPdf, voucherPdfAssets } from "~/features/store/voucher-pdf
 export const runtime = "nodejs";
 
 const NOTIFY_TO = "me@joephijwegen.com";
-// Flip to true once public/voucher/signature.png (Joep's handwritten signature) is committed.
-const HAS_SIGNATURE = false;
 
 /** Parse the compact `id|qty;id|qty` cart written by /api/checkout into the session metadata. */
 function parseCart(meta: string | null | undefined): Array<{ id: string; qty: number }> {
@@ -207,7 +205,7 @@ export async function POST(req: Request) {
   const customerEmail = session.customer_details?.email ?? "";
   if (voucherJobs.length > 0 && customerEmail && env.RESEND_API_KEY) {
     try {
-      const assets = voucherPdfAssets(env.NEXT_PUBLIC_URL, HAS_SIGNATURE);
+      const assets = voucherPdfAssets(env.NEXT_PUBLIC_URL);
       const attachments: Array<{ filename: string; content: Buffer }> = [];
       for (const job of voucherJobs) {
         const pdf = await renderVoucherPdf({ code: job.code, subject: job.subject, value: job.value, issuedAt: now }, assets);
